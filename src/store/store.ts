@@ -1,11 +1,10 @@
-import { combineReducers, configureStore, ThunkDispatch, UnknownAction } from '@reduxjs/toolkit';
+import { combineReducers, configureStore, createReducer, ThunkDispatch, UnknownAction } from '@reduxjs/toolkit';
 import { FLUSH, PAUSE, PERSIST, persistReducer, persistStore, PURGE, REGISTER, REHYDRATE } from 'redux-persist';
 import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import storage from 'redux-persist/es/storage';
-import auth from './auth.slice';
 
 const rootReducer = combineReducers({
-  auth: auth,
+  auth: createReducer({}, () => ({})),
 });
 
 const persistedReducer = persistReducer(
@@ -14,7 +13,6 @@ const persistedReducer = persistReducer(
     key: 'root',
     storage,
     whitelist: ['auth'],
-    // blacklist: ['auth'],
   },
   rootReducer
 );
