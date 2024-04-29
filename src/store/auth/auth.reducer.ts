@@ -1,52 +1,54 @@
 import { createReducer } from '@reduxjs/toolkit';
-import { User } from 'firebase/auth';
 import { ReducerWithInitialState } from '@reduxjs/toolkit/dist/createReducer';
 import {
-  signInUser,
+  resetPassword,
+  signInWithEmail,
   signInWithFacebook,
   signInWithGitHub,
   signInWithGoogle,
   signInWithRedirectProvider,
   signInWithTwitter,
   signOutUser,
-  signUpUser,
+  signUpWithEmail,
 } from './auth.actions';
 
 interface AuthState {
-  user: User | null;
+  // user: User | null;
   isLoading: boolean;
   error: string | null;
+  email: string | null;
 }
 
 const initialState: AuthState = {
-  user: null,
+  // user: null,
   isLoading: false,
   error: null,
+  email: null,
 };
 
 export const authReducer: ReducerWithInitialState<AuthState> = createReducer(initialState, (builder): void => {
   builder
-    .addCase(signInUser.pending, (state: AuthState): void => {
+    .addCase(signInWithEmail.pending, (state: AuthState): void => {
       state.isLoading = true;
       state.error = null;
     })
-    .addCase(signInUser.fulfilled, (state: AuthState, action: any): void => {
-      state.user = action.payload.user;
+    .addCase(signInWithEmail.fulfilled, (state: AuthState, action: any): void => {
+      // state.user = action.payload.user;
       state.isLoading = false;
     })
-    .addCase(signInUser.rejected, (state: AuthState, action: any): void => {
+    .addCase(signInWithEmail.rejected, (state: AuthState, action: any): void => {
       state.isLoading = false;
       state.error = action.payload.error;
     })
-    .addCase(signUpUser.pending, (state: AuthState): void => {
+    .addCase(signUpWithEmail.pending, (state: AuthState): void => {
       state.isLoading = true;
       state.error = null;
     })
-    .addCase(signUpUser.fulfilled, (state: AuthState, action: any): void => {
-      state.user = action.payload.user;
+    .addCase(signUpWithEmail.fulfilled, (state: AuthState, action: any): void => {
+      // state.user = action.payload.user;
       state.isLoading = false;
     })
-    .addCase(signUpUser.rejected, (state: AuthState, action: any): void => {
+    .addCase(signUpWithEmail.rejected, (state: AuthState, action: any): void => {
       state.isLoading = false;
       state.error = action.payload.error;
     })
@@ -55,7 +57,7 @@ export const authReducer: ReducerWithInitialState<AuthState> = createReducer(ini
       state.error = null;
     })
     .addCase(signInWithGoogle.fulfilled, (state: AuthState, action: any): void => {
-      state.user = action.payload.user;
+      // state.user = action.payload.user;
       state.isLoading = false;
     })
     .addCase(signInWithGoogle.rejected, (state: AuthState, action: any): void => {
@@ -67,7 +69,7 @@ export const authReducer: ReducerWithInitialState<AuthState> = createReducer(ini
       state.error = null;
     })
     .addCase(signInWithFacebook.fulfilled, (state: AuthState, action: any): void => {
-      state.user = action.payload.user;
+      // state.user = action.payload.user;
       state.isLoading = false;
     })
     .addCase(signInWithFacebook.rejected, (state: AuthState, action: any): void => {
@@ -79,7 +81,7 @@ export const authReducer: ReducerWithInitialState<AuthState> = createReducer(ini
       state.error = null;
     })
     .addCase(signInWithTwitter.fulfilled, (state: AuthState, action: any): void => {
-      state.user = action.payload.user;
+      // state.user = action.payload.user;
       state.isLoading = false;
     })
     .addCase(signInWithTwitter.rejected, (state: AuthState, action: any): void => {
@@ -91,7 +93,7 @@ export const authReducer: ReducerWithInitialState<AuthState> = createReducer(ini
       state.error = null;
     })
     .addCase(signInWithGitHub.fulfilled, (state: AuthState, action: any): void => {
-      state.user = action.payload.user;
+      // state.user = action.payload.user;
       state.isLoading = false;
     })
     .addCase(signInWithGitHub.rejected, (state: AuthState, action: any): void => {
@@ -103,7 +105,7 @@ export const authReducer: ReducerWithInitialState<AuthState> = createReducer(ini
       state.error = null;
     })
     .addCase(signInWithRedirectProvider.fulfilled, (state: AuthState, action: any): void => {
-      state.user = action.payload.user;
+      // state.user = action.payload.user;
       state.isLoading = false;
     })
     .addCase(signInWithRedirectProvider.rejected, (state: AuthState, action: any): void => {
@@ -115,10 +117,22 @@ export const authReducer: ReducerWithInitialState<AuthState> = createReducer(ini
       state.error = null;
     })
     .addCase(signOutUser.fulfilled, (state: AuthState): void => {
-      state.user = null;
+      // state.user = null;
       state.isLoading = false;
     })
     .addCase(signOutUser.rejected, (state: AuthState, action: any): void => {
+      state.isLoading = false;
+      state.error = action.payload.error;
+    })
+    .addCase(resetPassword.pending, (state: AuthState) => {
+      state.isLoading = true;
+    })
+    .addCase(resetPassword.fulfilled, (state: AuthState, action: any) => {
+      state.isLoading = false;
+      state.email = action.payload.email; // Capture the email for which the reset was sent
+      state.error = null;
+    })
+    .addCase(resetPassword.rejected, (state: AuthState, action: any) => {
       state.isLoading = false;
       state.error = action.payload.error;
     });

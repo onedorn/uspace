@@ -4,6 +4,7 @@ import {
   FacebookAuthProvider,
   GithubAuthProvider,
   GoogleAuthProvider,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signInWithRedirect,
@@ -14,7 +15,7 @@ import {
 import { auth } from '../../firebase/config';
 import { AsyncThunkConfig, GetThunkAPI } from '@reduxjs/toolkit/dist/createAsyncThunk';
 
-export const signInUser = createAsyncThunk(
+export const signInWithEmail = createAsyncThunk(
   'firestoreAuth/signIn',
   async (
     {
@@ -37,21 +38,23 @@ export const signInUser = createAsyncThunk(
   }
 );
 
-export const signUpUser = createAsyncThunk(
+export const signUpWithEmail = createAsyncThunk(
   'firestoreAuth/signUp',
   async (
     {
       email,
       password,
+      role,
     }: {
       email: string;
       password: string;
+      role: string;
     },
     { rejectWithValue }: GetThunkAPI<AsyncThunkConfig>
   ) => {
     try {
-      const userCredential: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
-      return { user: userCredential.user };
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      return { user: userCredential.user, role: role || 'student' };
     } catch (error: any) {
       return rejectWithValue({ error: error.message });
     }
@@ -101,6 +104,16 @@ export const signInWithRedirectProvider = createAsyncThunk('firestoreAuth/signIn
     const provider: GoogleAuthProvider = new GoogleAuthProvider();
     await signInWithRedirect(auth, provider);
   } catch (error: any) {
+    return rejectWithValue({ error: error.message });
+  }
+});
+
+export const resetPassword = createAsyncThunk('firestoreAuth/resetPassword', async (email: string, { rejectWithValue }) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { email };
+  } catch (error: any) {
+    console.error('Error sending password reset email: ', error);
     return rejectWithValue({ error: error.message });
   }
 });

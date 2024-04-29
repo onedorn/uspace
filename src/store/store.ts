@@ -4,9 +4,11 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from 'react-redux';
 import storage from 'redux-persist/es/storage';
 import authReducer from './auth/auth.reducer';
 import { FLUSH, PAUSE, PERSIST, PURGE, REGISTER, REHYDRATE } from 'redux-persist/es/constants';
+import userReducer from './user/user.reducer';
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  user: userReducer,
 });
 
 const persistedReducer = persistReducer(
@@ -14,7 +16,7 @@ const persistedReducer = persistReducer(
     version: 1,
     key: 'root',
     storage,
-    whitelist: ['auth'],
+    whitelist: ['auth', 'user'],
   },
   rootReducer
 );
@@ -25,7 +27,6 @@ export const store = configureStore({
     getDefaultMiddleware({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-        // isSerializable: () => true,
       },
     }),
   devTools: true,

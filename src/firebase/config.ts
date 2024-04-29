@@ -7,7 +7,7 @@ import { getMessaging, Messaging } from 'firebase/messaging';
 import { getRemoteConfig, RemoteConfig } from 'firebase/remote-config';
 import env from 'react-dotenv';
 
-const app: FirebaseApp = initializeApp({
+export const app: FirebaseApp = initializeApp({
   apiKey: env.REACT_APP_FIREBASE_API_KEY,
   authDomain: env.REACT_APP_FIREBASE_AUTH_DOMAIN,
   projectId: env.REACT_APP_FIREBASE_PROJECT_ID,
