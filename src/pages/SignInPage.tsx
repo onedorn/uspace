@@ -26,12 +26,13 @@ import {
   Window as MicrosoftIcon,
 } from '@mui/icons-material';
 import {
-  AuthProvider,
+  browserSessionPersistence,
   FacebookAuthProvider,
   GithubAuthProvider,
   GoogleAuthProvider,
   OAuthProvider,
   sendPasswordResetEmail,
+  setPersistence,
   signInWithEmailAndPassword,
   signInWithPopup,
   TwitterAuthProvider,
@@ -40,6 +41,7 @@ import { auth } from '../firebase/config';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { authUserFailure, authUserRequest } from '../store/user/user.actions';
+import { FirebaseError } from 'firebase/app';
 
 const SignInPage = () => {
   const dispatch = useDispatch();
@@ -53,24 +55,18 @@ const SignInPage = () => {
   const error = useSelector((state: RootState) => state.user.error);
   const loading = useSelector((state: RootState) => state.user.loading);
 
-  const providers = [
-    { icon: <GoogleIcon />, provider: new GoogleAuthProvider(), label: 'Google' },
-    { icon: <GitHubIcon />, provider: new GithubAuthProvider(), label: 'GitHub' },
-    { icon: <MicrosoftIcon />, provider: new OAuthProvider('microsoft.com'), label: 'Microsoft' },
-
-    { icon: <AppleIcon />, provider: new OAuthProvider('apple.com'), label: 'Apple' },
-    { icon: <TwitterIcon />, provider: new TwitterAuthProvider(), label: 'Twitter' },
-    { icon: <FacebookIcon />, provider: new FacebookAuthProvider(), label: 'Facebook' },
-  ];
-
   const handleLogInWithEmailAndPassword = (event: Event | SyntheticEvent<any, Event>) => {
     event.preventDefault();
-    setOpen(false);
-    dispatch(authUserRequest());
 
-    signInWithEmailAndPassword(auth, email, password).catch((error) => {
-      dispatch(authUserFailure({ message: error.message }));
-      setOpen(true);
+    setPersistence(auth, browserSessionPersistence).then(async () => {
+      try {
+        setOpen(false);
+        dispatch(authUserRequest());
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (error) {
+        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
+        setOpen(true);
+      }
     });
   };
 
@@ -96,19 +92,70 @@ const SignInPage = () => {
       });
   };
 
-  const handleAuthProviderLogin = (provider: AuthProvider) => {
-    // setOpen(false);
-    // dispatch(authUserRequest());
-
-    signInWithPopup(auth, provider)
-      .then((result) => {
-        // dispatch(authUserSuccess(result.user));
-        console.log(result.user, 'signed in');
-      })
-      .catch((error) => {
-        dispatch(authUserFailure({ message: error.message }));
+  const handleGoogleProviderLogin = () => {
+    setPersistence(auth, browserSessionPersistence).then(async () => {
+      try {
+        await signInWithPopup(auth, new GoogleAuthProvider());
+      } catch (error) {
+        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
         alert(error);
-      });
+      }
+    });
+  };
+
+  const handleGithubProviderLogin = () => {
+    setPersistence(auth, browserSessionPersistence).then(async () => {
+      try {
+        await signInWithPopup(auth, new GithubAuthProvider());
+      } catch (error) {
+        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
+        alert(error);
+      }
+    });
+  };
+
+  const handleFacebookProviderLogin = () => {
+    setPersistence(auth, browserSessionPersistence).then(async () => {
+      try {
+        await signInWithPopup(auth, new FacebookAuthProvider());
+      } catch (error) {
+        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
+        alert(error);
+      }
+    });
+  };
+
+  const handleAppleProviderLogin = () => {
+    setPersistence(auth, browserSessionPersistence).then(async () => {
+      try {
+        await signInWithPopup(auth, new OAuthProvider('apple.com'));
+      } catch (error) {
+        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
+        alert(error);
+      }
+    });
+  };
+
+  const handleMicrosoftProviderLogin = () => {
+    setPersistence(auth, browserSessionPersistence).then(async () => {
+      try {
+        await signInWithPopup(auth, new OAuthProvider('microsoft.com'));
+      } catch (error) {
+        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
+        alert(error);
+      }
+    });
+  };
+
+  const handleTwitterProviderLogin = () => {
+    setPersistence(auth, browserSessionPersistence).then(async () => {
+      try {
+        await signInWithPopup(auth, new TwitterAuthProvider());
+      } catch (error) {
+        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
+        alert(error);
+      }
+    });
   };
 
   const handleErrorClose = (event: Event | SyntheticEvent<any, Event>, reason?: SnackbarCloseReason) => {
@@ -213,19 +260,73 @@ const SignInPage = () => {
             Forgot password?
           </Link>
           <Box sx={{ mt: 1, width: '100%' }}>
-            {providers.map(({ icon, provider, label }) => (
-              <Button
-                key={label}
-                startIcon={icon}
-                fullWidth
-                variant="outlined"
-                sx={{ mb: 1 }}
-                onClick={() => handleAuthProviderLogin(provider)}
-                disabled={loading}
-              >
-                Sign in with {label}
-              </Button>
-            ))}
+            <Button
+              key="Google"
+              startIcon={<GoogleIcon />}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 1 }}
+              onClick={() => handleGoogleProviderLogin()}
+              disabled={loading}
+            >
+              Sign in with Google
+            </Button>
+
+            <Button
+              key="Github"
+              startIcon={<GitHubIcon />}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 1 }}
+              onClick={() => handleGithubProviderLogin()}
+              disabled={loading}
+            >
+              Sign in with GitHub
+            </Button>
+            <Button
+              key="Microsoft"
+              startIcon={<MicrosoftIcon />}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 1 }}
+              onClick={() => handleMicrosoftProviderLogin()}
+              disabled={loading}
+            >
+              Sign in with Microsoft
+            </Button>
+            <Button
+              key="Apple"
+              startIcon={<AppleIcon />}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 1 }}
+              onClick={() => handleAppleProviderLogin()}
+              disabled={loading}
+            >
+              Sign in with Apple
+            </Button>
+            <Button
+              key="Facebook"
+              startIcon={<FacebookIcon />}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 1 }}
+              onClick={() => handleFacebookProviderLogin()}
+              disabled={loading}
+            >
+              Sign in with Facebook
+            </Button>
+            <Button
+              key="Twitter"
+              startIcon={<TwitterIcon />}
+              fullWidth
+              variant="outlined"
+              sx={{ mb: 1 }}
+              onClick={() => handleTwitterProviderLogin()}
+              disabled={loading}
+            >
+              Sign in with Twitter
+            </Button>
           </Box>
           {success && (
             <Alert
