@@ -1,26 +1,10 @@
 import React, { SyntheticEvent, useState } from 'react';
+import { Alert, Avatar, Box, Button, Container, CssBaseline, IconButton, Link, TextField, Typography } from '@mui/material';
 import {
-  Alert,
-  Avatar,
-  Box,
-  Button,
-  CircularProgress,
-  Container,
-  CssBaseline,
-  IconButton,
-  Link,
-  SnackbarCloseReason,
-  TextField,
-  Typography,
-} from '@mui/material';
-import {
-  Apple as AppleIcon,
   Close as CloseIcon,
-  Facebook as FacebookIcon,
   GitHub as GitHubIcon,
   Google as GoogleIcon,
   LockOutlined as LockOutlinedIcon,
-  Twitter as TwitterIcon,
   Visibility,
   VisibilityOff,
   Window as MicrosoftIcon,
@@ -48,11 +32,9 @@ const SignInPage = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [open, setOpen] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
   const [showPassword, setShowPassword] = useState(false);
 
-  const error = useSelector((state: RootState) => state.user.error);
   const loading = useSelector((state: RootState) => state.user.loading);
 
   const handleLogInWithEmailAndPassword = (event: Event | SyntheticEvent<any, Event>) => {
@@ -60,19 +42,20 @@ const SignInPage = () => {
 
     setPersistence(auth, browserSessionPersistence).then(async () => {
       try {
-        setOpen(false);
+        setAlert((prev) => ({ ...prev, open: false }));
         dispatch(authUserRequest());
         await signInWithEmailAndPassword(auth, email, password);
       } catch (error) {
-        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
-        setOpen(true);
+        const firebaseError = error as FirebaseError;
+        dispatch(authUserFailure({ message: firebaseError.message }));
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       }
     });
   };
 
   const handlePasswordResetEmail = (event: Event | SyntheticEvent<any, Event>) => {
     event.preventDefault();
-    setSuccess(false);
+    setAlert((prev) => ({ ...prev, open: false }));
 
     const newEmail = prompt('Please enter your email address:');
 
@@ -82,13 +65,11 @@ const SignInPage = () => {
 
     sendPasswordResetEmail(auth, newEmail)
       .then(() => {
-        console.log('Password reset email sent');
-        setSuccess(true);
+        setAlert({ open: true, message: 'Password reset email sent. Please check your inbox.', severity: 'success' });
       })
       .catch((error) => {
-        const errorMessage = error.message;
-        setSuccess(false);
-        console.log('Error code:', errorMessage);
+        const firebaseError = error.message;
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       });
   };
 
@@ -97,8 +78,9 @@ const SignInPage = () => {
       try {
         await signInWithPopup(auth, new GoogleAuthProvider());
       } catch (error) {
-        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
-        alert(error);
+        const firebaseError = error as FirebaseError;
+        dispatch(authUserFailure({ message: firebaseError.message }));
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       }
     });
   };
@@ -108,8 +90,9 @@ const SignInPage = () => {
       try {
         await signInWithPopup(auth, new GithubAuthProvider());
       } catch (error) {
-        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
-        alert(error);
+        const firebaseError = error as FirebaseError;
+        dispatch(authUserFailure({ message: firebaseError.message }));
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       }
     });
   };
@@ -119,8 +102,9 @@ const SignInPage = () => {
       try {
         await signInWithPopup(auth, new FacebookAuthProvider());
       } catch (error) {
-        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
-        alert(error);
+        const firebaseError = error as FirebaseError;
+        dispatch(authUserFailure({ message: firebaseError.message }));
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       }
     });
   };
@@ -130,8 +114,9 @@ const SignInPage = () => {
       try {
         await signInWithPopup(auth, new OAuthProvider('apple.com'));
       } catch (error) {
-        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
-        alert(error);
+        const firebaseError = error as FirebaseError;
+        dispatch(authUserFailure({ message: firebaseError.message }));
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       }
     });
   };
@@ -141,8 +126,9 @@ const SignInPage = () => {
       try {
         await signInWithPopup(auth, new OAuthProvider('microsoft.com'));
       } catch (error) {
-        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
-        alert(error);
+        const firebaseError = error as FirebaseError;
+        dispatch(authUserFailure({ message: firebaseError.message }));
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       }
     });
   };
@@ -152,24 +138,11 @@ const SignInPage = () => {
       try {
         await signInWithPopup(auth, new TwitterAuthProvider());
       } catch (error) {
-        dispatch(authUserFailure({ message: (error as FirebaseError).message }));
-        alert(error);
+        const firebaseError = error as FirebaseError;
+        dispatch(authUserFailure({ message: firebaseError.message }));
+        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
       }
     });
-  };
-
-  const handleErrorClose = (event: Event | SyntheticEvent<any, Event>, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setOpen(false);
-  };
-
-  const handleSuccessClose = (event: Event | SyntheticEvent<any, Event>, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-    setSuccess(false);
   };
 
   return (
@@ -271,7 +244,6 @@ const SignInPage = () => {
             >
               Sign in with Google
             </Button>
-
             <Button
               key="Github"
               startIcon={<GitHubIcon />}
@@ -294,69 +266,54 @@ const SignInPage = () => {
             >
               Sign in with Microsoft
             </Button>
-            <Button
-              key="Apple"
-              startIcon={<AppleIcon />}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 1 }}
-              onClick={() => handleAppleProviderLogin()}
-              disabled={loading}
-            >
-              Sign in with Apple
-            </Button>
-            <Button
-              key="Facebook"
-              startIcon={<FacebookIcon />}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 1 }}
-              onClick={() => handleFacebookProviderLogin()}
-              disabled={loading}
-            >
-              Sign in with Facebook
-            </Button>
-            <Button
-              key="Twitter"
-              startIcon={<TwitterIcon />}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 1 }}
-              onClick={() => handleTwitterProviderLogin()}
-              disabled={loading}
-            >
-              Sign in with Twitter
-            </Button>
+            {/*<Button*/}
+            {/*  key="Apple"*/}
+            {/*  startIcon={<AppleIcon />}*/}
+            {/*  fullWidth*/}
+            {/*  variant="outlined"*/}
+            {/*  sx={{ mb: 1 }}*/}
+            {/*  onClick={() => handleAppleProviderLogin()}*/}
+            {/*  disabled={loading}*/}
+            {/*>*/}
+            {/*  Sign in with Apple*/}
+            {/*</Button>*/}
+            {/*<Button*/}
+            {/*  key="Facebook"*/}
+            {/*  startIcon={<FacebookIcon />}*/}
+            {/*  fullWidth*/}
+            {/*  variant="outlined"*/}
+            {/*  sx={{ mb: 1 }}*/}
+            {/*  onClick={() => handleFacebookProviderLogin()}*/}
+            {/*  disabled={loading}*/}
+            {/*>*/}
+            {/*  Sign in with Facebook*/}
+            {/*</Button>*/}
+            {/*<Button*/}
+            {/*  key="Twitter"*/}
+            {/*  startIcon={<TwitterIcon />}*/}
+            {/*  fullWidth*/}
+            {/*  variant="outlined"*/}
+            {/*  sx={{ mb: 1 }}*/}
+            {/*  onClick={() => handleTwitterProviderLogin()}*/}
+            {/*  disabled={loading}*/}
+            {/*>*/}
+            {/*  Sign in with Twitter*/}
+            {/*</Button>*/}
           </Box>
-          {success && (
+          {alert.open && (
             <Alert
-              severity="success"
+              severity={alert.severity as 'error' | 'info' | 'success' | 'warning'}
               sx={{ width: '100%', mt: 2 }}
               action={
-                <IconButton size="small" aria-label="close" color="inherit" onClick={handleSuccessClose}>
+                <IconButton size="small" aria-label="close" color="inherit" onClick={() => setAlert((prev) => ({ ...prev, open: false }))}>
                   <CloseIcon fontSize="small" />
                 </IconButton>
               }
-              onClose={handleErrorClose}
+              onClose={() => setAlert((prev) => ({ ...prev, open: false }))}
             >
-              Password reset email sent successfully!
+              {alert.message}
             </Alert>
           )}
-          {open && (
-            <Alert
-              severity="error"
-              sx={{ width: '100%', mt: 2 }}
-              action={
-                <IconButton size="small" aria-label="close" color="inherit" onClick={handleErrorClose}>
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              }
-              onClose={handleErrorClose}
-            >
-              {error}
-            </Alert>
-          )}
-          {loading && <CircularProgress size={24} sx={{ display: 'block', margin: 'auto' }} />}
         </Box>
       </Box>
     </Container>

@@ -1,31 +1,28 @@
 import React, { useEffect } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import NavBar from '../components/NavBar';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { useDispatch } from 'react-redux';
 import { authUserLeave, authUserSuccess } from '../store/user/user.actions';
+import { mapUserData } from '../helpers/user.helpers';
 
 const Layout = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user: User | null): void => {
+    const unsubscribe = onAuthStateChanged(auth, async (user: User | null): Promise<void> => {
       if (user) {
-        dispatch(
-          authUserSuccess({
-            uid: user.uid,
-            email: user.email,
-            displayName: user.displayName,
-            photoURL: user.photoURL,
-            emailVerified: user.emailVerified,
-            phoneNumber: user.phoneNumber,
-            isAnonymous: user.isAnonymous,
-          })
-        );
-        navigate('/student');
-        console.log('Login successful', user);
+        if (!user.emailVerified) {
+          // manage verification email sent to user
+          console.log('User not verified its email', user);
+          await signOut(auth);
+        } else {
+          dispatch(authUserSuccess(mapUserData(user)));
+          navigate('/student');
+          console.log('Login successful', user);
+        }
       } else {
         dispatch(authUserLeave());
         console.log('User logged out', user);

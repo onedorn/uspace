@@ -1,47 +1,59 @@
-import React, { SyntheticEvent, useState } from 'react';
-import { Alert, Avatar, Box, Button, CircularProgress, Container, CssBaseline, IconButton, SnackbarCloseReason, TextField, Typography } from '@mui/material';
-import CloseIcon from '@mui/icons-material/Close';
+import React, { useState } from 'react';
+import { Alert, Avatar, Box, Button, CircularProgress, Container, CssBaseline, IconButton, TextField, Typography } from '@mui/material';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { createUserWithEmailAndPassword, UserCredential } from 'firebase/auth';
-import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../store/store';
 import { authUserFailure, authUserRequest } from '../store/user/user.actions';
 import { auth } from '../firebase/config';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
+import { FirebaseError } from 'firebase/app';
 
 const SignUpPage = () => {
-  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [open, setOpen] = useState(false);
+  const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
   const [showPassword, setShowPassword] = useState(false);
 
-  const error = useSelector((state: RootState) => state.user.error);
   const loading = useSelector((state: RootState) => state.user.loading);
 
-  const handleSubmit = (event: any) => {
+  const handleCreateUserWithEmailAndPassword = async (event: React.FormEvent) => {
     event.preventDefault();
-    setOpen(false);
-    dispatch(authUserRequest());
 
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((_userCredential: UserCredential) => {
-        navigate('/student');
-      })
-      .catch((error) => {
-        dispatch(authUserFailure({ message: error.message }));
-        setOpen(true);
-      });
+    try {
+      setAlert((prev) => ({ ...prev, open: false }));
+      dispatch(authUserRequest());
+      await createUserWithEmailAndPassword(auth, email, password);
+      await sendVerificationEmail();
+    } catch (error) {
+      const errMsg = error as FirebaseError;
+      dispatch(authUserFailure({ message: errMsg.message }));
+      setAlert({ open: true, message: errMsg.message, severity: 'error' });
+    }
   };
 
-  const handleClose = (event: Event | SyntheticEvent<any, Event>, reason?: SnackbarCloseReason) => {
-    if (reason === 'clickaway') {
-      return;
+  const sendVerificationEmail = async (): Promise<void> => {
+    try {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        setAlert({ open: true, message: 'Verification email sent. Please check your inbox.', severity: 'success' });
+      }
+    } catch (error) {
+      setAlert({ open: true, message: 'Failed to send verification email.', severity: 'error' });
     }
-    setOpen(false);
+  };
+
+  const resendVerificationEmail = async () => {
+    try {
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+      }
+      setAlert({ open: true, message: 'Verification email re-sent. Please check your inbox.', severity: 'success' });
+    } catch (error) {
+      setAlert({ open: true, message: 'Failed to resend verification email.', severity: 'error' });
+    }
   };
 
   return (
@@ -61,7 +73,7 @@ const SignUpPage = () => {
         <Typography component="h1" variant="h6">
           Sign Up
         </Typography>
-        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1 }}>
+        <Box component="form" onSubmit={handleCreateUserWithEmailAndPassword} noValidate sx={{ mt: 1 }}>
           <TextField
             variant="outlined"
             margin="dense" // Smaller margin
@@ -123,18 +135,9 @@ const SignUpPage = () => {
           >
             Sign Up
           </Button>
-          {open && (
-            <Alert
-              severity="error"
-              sx={{ width: '100%', mt: 2 }}
-              action={
-                <IconButton size="small" aria-label="close" color="inherit" onClick={handleClose}>
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              }
-              onClose={handleClose}
-            >
-              {error}
+          {alert.open && (
+            <Alert severity={alert.severity as 'error' | 'info' | 'success' | 'warning'} sx={{ width: '100%', mt: 2 }}>
+              {alert.message}
             </Alert>
           )}
           {loading && <CircularProgress size={24} sx={{ display: 'block', margin: 'auto' }} />}
