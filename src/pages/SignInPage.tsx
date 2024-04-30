@@ -1,12 +1,15 @@
 import React, { SyntheticEvent, useState } from 'react';
-import { Alert, Avatar, Box, Button, Container, CssBaseline, IconButton, Link, TextField, Typography } from '@mui/material';
+import { Alert, Avatar, Box, Button, Container, CssBaseline, Divider, IconButton, Link, TextField, Tooltip, Typography } from '@mui/material';
 import {
+  Apple as AppleIcon,
   Close as CloseIcon,
+  Facebook as FacebookIcon,
   GitHub as GitHubIcon,
   Google as GoogleIcon,
   LockOutlined as LockOutlinedIcon,
-  Visibility,
-  VisibilityOff,
+  Twitter as TwitterIcon,
+  Visibility as VisibilityIcon,
+  VisibilityOff as VisibilityOffIcon,
   Window as MicrosoftIcon,
 } from '@mui/icons-material';
 import {
@@ -36,6 +39,15 @@ const SignInPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const loading = useSelector((state: RootState) => state.user.loading);
+
+  const providerData = [
+    { icon: <GoogleIcon />, provider: new GoogleAuthProvider(), label: 'Google', color: '#DB4437', iconColor: '#fff' },
+    { icon: <GitHubIcon />, provider: new GithubAuthProvider(), label: 'GitHub', color: '#333', iconColor: '#fff' },
+    { icon: <FacebookIcon />, provider: new FacebookAuthProvider(), label: 'Facebook', color: '#3B5998', iconColor: '#fff' },
+    { icon: <AppleIcon />, provider: new OAuthProvider('apple.com'), label: 'Apple', color: '#A3AAAE', iconColor: '#000' },
+    { icon: <MicrosoftIcon />, provider: new OAuthProvider('microsoft.com'), label: 'Microsoft', color: '#F25022', iconColor: '#fff' },
+    { icon: <TwitterIcon />, provider: new TwitterAuthProvider(), label: 'Twitter', color: '#1DA1F2', iconColor: '#fff' },
+  ];
 
   const handleLogInWithEmailAndPassword = (event: Event | SyntheticEvent<any, Event>) => {
     event.preventDefault();
@@ -73,70 +85,10 @@ const SignInPage = () => {
       });
   };
 
-  const handleGoogleProviderLogin = () => {
+  const handleSignInWithProvider = (provider: GoogleAuthProvider | GithubAuthProvider | OAuthProvider | FacebookAuthProvider | TwitterAuthProvider) => {
     setPersistence(auth, browserSessionPersistence).then(async () => {
       try {
-        await signInWithPopup(auth, new GoogleAuthProvider());
-      } catch (error) {
-        const firebaseError = error as FirebaseError;
-        dispatch(authUserFailure({ message: firebaseError.message }));
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      }
-    });
-  };
-
-  const handleGithubProviderLogin = () => {
-    setPersistence(auth, browserSessionPersistence).then(async () => {
-      try {
-        await signInWithPopup(auth, new GithubAuthProvider());
-      } catch (error) {
-        const firebaseError = error as FirebaseError;
-        dispatch(authUserFailure({ message: firebaseError.message }));
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      }
-    });
-  };
-
-  const handleFacebookProviderLogin = () => {
-    setPersistence(auth, browserSessionPersistence).then(async () => {
-      try {
-        await signInWithPopup(auth, new FacebookAuthProvider());
-      } catch (error) {
-        const firebaseError = error as FirebaseError;
-        dispatch(authUserFailure({ message: firebaseError.message }));
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      }
-    });
-  };
-
-  const handleAppleProviderLogin = () => {
-    setPersistence(auth, browserSessionPersistence).then(async () => {
-      try {
-        await signInWithPopup(auth, new OAuthProvider('apple.com'));
-      } catch (error) {
-        const firebaseError = error as FirebaseError;
-        dispatch(authUserFailure({ message: firebaseError.message }));
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      }
-    });
-  };
-
-  const handleMicrosoftProviderLogin = () => {
-    setPersistence(auth, browserSessionPersistence).then(async () => {
-      try {
-        await signInWithPopup(auth, new OAuthProvider('microsoft.com'));
-      } catch (error) {
-        const firebaseError = error as FirebaseError;
-        dispatch(authUserFailure({ message: firebaseError.message }));
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      }
-    });
-  };
-
-  const handleTwitterProviderLogin = () => {
-    setPersistence(auth, browserSessionPersistence).then(async () => {
-      try {
-        await signInWithPopup(auth, new TwitterAuthProvider());
+        await signInWithPopup(auth, provider);
       } catch (error) {
         const firebaseError = error as FirebaseError;
         dispatch(authUserFailure({ message: firebaseError.message }));
@@ -206,7 +158,7 @@ const SignInPage = () => {
                   onMouseUp={() => setShowPassword(false)}
                   onMouseLeave={() => setShowPassword(false)}
                 >
-                  {showPassword ? <VisibilityOff /> : <Visibility />}
+                  {showPassword ? <VisibilityOffIcon /> : <VisibilityIcon />}
                 </IconButton>
               ),
             }}
@@ -228,73 +180,35 @@ const SignInPage = () => {
           >
             Forgot password?
           </Link>
-          <Box sx={{ mt: 1, width: '100%' }}>
-            <Button
-              key="Google"
-              startIcon={<GoogleIcon />}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 1 }}
-              onClick={() => handleGoogleProviderLogin()}
-              disabled={loading}
-            >
-              Sign in with Google
-            </Button>
-            <Button
-              key="Github"
-              startIcon={<GitHubIcon />}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 1 }}
-              onClick={() => handleGithubProviderLogin()}
-              disabled={loading}
-            >
-              Sign in with GitHub
-            </Button>
-            <Button
-              key="Microsoft"
-              startIcon={<MicrosoftIcon />}
-              fullWidth
-              variant="outlined"
-              sx={{ mb: 1 }}
-              onClick={() => handleMicrosoftProviderLogin()}
-              disabled={loading}
-            >
-              Sign in with Microsoft
-            </Button>
-            {/*<Button*/}
-            {/*  key="Apple"*/}
-            {/*  startIcon={<AppleIcon />}*/}
-            {/*  fullWidth*/}
-            {/*  variant="outlined"*/}
-            {/*  sx={{ mb: 1 }}*/}
-            {/*  onClick={() => handleAppleProviderLogin()}*/}
-            {/*  disabled={loading}*/}
-            {/*>*/}
-            {/*  Sign in with Apple*/}
-            {/*</Button>*/}
-            {/*<Button*/}
-            {/*  key="Facebook"*/}
-            {/*  startIcon={<FacebookIcon />}*/}
-            {/*  fullWidth*/}
-            {/*  variant="outlined"*/}
-            {/*  sx={{ mb: 1 }}*/}
-            {/*  onClick={() => handleFacebookProviderLogin()}*/}
-            {/*  disabled={loading}*/}
-            {/*>*/}
-            {/*  Sign in with Facebook*/}
-            {/*</Button>*/}
-            {/*<Button*/}
-            {/*  key="Twitter"*/}
-            {/*  startIcon={<TwitterIcon />}*/}
-            {/*  fullWidth*/}
-            {/*  variant="outlined"*/}
-            {/*  sx={{ mb: 1 }}*/}
-            {/*  onClick={() => handleTwitterProviderLogin()}*/}
-            {/*  disabled={loading}*/}
-            {/*>*/}
-            {/*  Sign in with Twitter*/}
-            {/*</Button>*/}
+          <Divider sx={{ width: '100%', mb: 2, mt: 2 }} textAlign="center">
+            <Box component="span" sx={{ bgcolor: 'background.paper', px: 1 }}>
+              OR
+            </Box>
+          </Divider>
+          <Box sx={{ display: 'flex', justifyContent: 'center', width: '100%', mb: 2, mt: 2 }}>
+            {providerData.map(({ provider, icon, label, color, iconColor }, index) => (
+              <Tooltip title={`Sign in with ${label}`} placement="top" key={label}>
+                <Button
+                  startIcon={React.cloneElement(icon, { style: { color: iconColor } })}
+                  variant="contained"
+                  onClick={() => handleSignInWithProvider(provider)}
+                  disabled={loading}
+                  sx={{
+                    mx: 0.5,
+                    backgroundColor: color,
+                    color: iconColor,
+                    ':first-of-type': { ml: 0 },
+                    ':last-of-type': { mr: 0 },
+                    '&:hover': {
+                      backgroundColor: `${color}CC`,
+                    },
+                    '& .MuiButton-startIcon': {
+                      margin: 0,
+                    },
+                  }}
+                />
+              </Tooltip>
+            ))}
           </Box>
           {alert.open && (
             <Alert
