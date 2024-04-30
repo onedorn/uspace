@@ -174,8 +174,6 @@ const SignInPage = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             size="small"
-            error={email === ''}
-            helperText={email === '' ? 'Email is required' : ''}
           />
           <TextField
             variant="outlined"
@@ -188,8 +186,6 @@ const SignInPage = () => {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             size="small"
-            error={password === ''}
-            helperText={password === '' ? 'Password is required' : ''}
             InputProps={{
               endAdornment: (
                 <IconButton

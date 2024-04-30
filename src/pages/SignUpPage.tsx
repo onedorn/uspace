@@ -8,13 +8,16 @@ import { authUserFailure, authUserRequest } from '../store/user/user.actions';
 import { auth } from '../firebase/config';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { FirebaseError } from 'firebase/app';
+import { validateEmail, validatePassword } from '../helpers/auth.helpres';
 
 const SignUpPage = () => {
   const dispatch = useDispatch();
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const loading = useSelector((state: RootState) => state.user.loading);
@@ -56,6 +59,18 @@ const SignUpPage = () => {
     }
   };
 
+  const handleEmailChange = (event: { target: { value: any } }) => {
+    const newEmail = event.target.value;
+    setEmail(newEmail);
+    setEmailError(validateEmail(newEmail));
+  };
+
+  const handlePasswordChange = (event: { target: { value: any } }) => {
+    const newPassword = event.target.value;
+    setPassword(newPassword);
+    setPasswordError(validatePassword(newPassword));
+  };
+
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
@@ -76,17 +91,17 @@ const SignUpPage = () => {
         <Box component="form" onSubmit={handleCreateUserWithEmailAndPassword} noValidate sx={{ mt: 1 }}>
           <TextField
             variant="outlined"
-            margin="dense" // Smaller margin
+            margin="dense"
             required
             fullWidth
             label="Email Address"
             autoComplete="email"
             autoFocus
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            size="small" // Smaller input field
-            error={email === ''}
-            helperText={email === '' ? 'Email is required' : ''}
+            onChange={handleEmailChange}
+            size="small"
+            error={!!emailError}
+            helperText={emailError}
           />
           <TextField
             variant="outlined"
@@ -97,10 +112,10 @@ const SignUpPage = () => {
             type={showPassword ? 'text' : 'password'}
             autoComplete="new-password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            size="small" // Smaller input field
-            error={email === ''}
-            helperText={email === '' ? 'Password is required' : ''}
+            onChange={handlePasswordChange}
+            size="small"
+            error={!!passwordError}
+            helperText={passwordError}
             InputProps={{
               endAdornment: (
                 <IconButton
@@ -131,7 +146,7 @@ const SignUpPage = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 2, mb: 2 }} // Adjusted margin
-            disabled={loading || (!email && !password)}
+            disabled={loading || !!emailError || !!passwordError}
           >
             Sign Up
           </Button>
