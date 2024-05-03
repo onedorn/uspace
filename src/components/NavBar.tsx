@@ -1,11 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppBar, Avatar, Badge, Button, IconButton, styled, Toolbar, Tooltip, Typography } from '@mui/material';
-import { deleteUser, signOut, updateEmail, updatePassword, updateProfile, User } from 'firebase/auth';
+import { User } from 'firebase/auth';
 import { auth } from '../firebase/config';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store/store';
-import { authUserSuccess } from '../store/user/user.actions';
+import { useAuth } from '../context/AuthContext';
 import Avatars, { UserAvatar } from '../constants/avatars';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -47,9 +45,8 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 function NavBar() {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const user = useSelector((state: RootState) => state.user.user);
+  const { user, signOutUser, updateUserEmail, updateUserPassword, updateUserProfile, deleteUserAccount } = useAuth();
 
   const createAvatarURL = () => {
     // Get all keys (collections) from the Avatars object
@@ -64,42 +61,22 @@ function NavBar() {
     return `https://api.dicebear.com/8.x/${selectedCollectionKey}/svg?seed=${selectedAvatarName}`;
   };
 
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth);
-      navigate('/signin');
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const handleSignOut = async (): Promise<void> => {
+    await signOutUser();
   };
 
-  const handleUpdateUser = async () => {
-    const avatarURL = createAvatarURL();
+  const handleUpdateUser = async (): Promise<void> => {
+    const photoURL = createAvatarURL();
     const displayName = prompt('Enter your name:', auth.currentUser?.displayName || '');
 
     if (displayName === null) {
       return;
     }
 
-    updateProfile(auth.currentUser as User, {
-      displayName: displayName,
-      photoURL: avatarURL,
-    })
-      .then(() => {
-        const student = {
-          ...user,
-          displayName: displayName,
-          photoURL: avatarURL,
-        };
-        dispatch(authUserSuccess(student));
-        console.log(student);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    await updateUserProfile({ displayName, photoURL });
   };
 
-  const handleUpdateUserEmail = async () => {
+  const handleUpdateUserEmail = async (): Promise<void> => {
     const user = auth.currentUser as User;
     const newEmail = prompt('Enter your email:', (user.email as string) || '');
 
@@ -107,40 +84,21 @@ function NavBar() {
       return;
     }
 
-    updateEmail(user, newEmail)
-      .then(() => {
-        console.log('Email updated.');
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    await updateUserEmail(newEmail);
   };
 
-  const handleUpdateUserPassword = async () => {
-    const user = auth.currentUser as User;
+  const handleUpdateUserPassword = async (): Promise<void> => {
     const newPassword = prompt('Enter your password:', '');
 
     if (newPassword === null) {
       return;
     }
 
-    updatePassword(user, newPassword)
-      .then(() => {
-        console.log('Password Updated successfully.');
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+    await updateUserPassword(newPassword);
   };
 
-  const handleDeleteUser = async () => {
-    deleteUser(auth.currentUser as User)
-      .then(() => {
-        console.log('User deleted.');
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  const handleDeleteUser = async (): Promise<void> => {
+    await deleteUserAccount();
   };
 
   return (

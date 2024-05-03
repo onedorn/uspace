@@ -1,19 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Avatar, Container, IconButton, Stack, Tooltip, Typography } from '@mui/material';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
-import {
-  EmailAuthProvider,
-  FacebookAuthProvider,
-  GithubAuthProvider,
-  GoogleAuthProvider,
-  linkWithPopup,
-  OAuthProvider,
-  TwitterAuthProvider,
-  unlink,
-} from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { Apple, Facebook, GitHub, Google, Twitter, Window } from '@mui/icons-material';
+import { EmailAuthProvider, FacebookAuthProvider, GithubAuthProvider, GoogleAuthProvider, OAuthProvider, TwitterAuthProvider } from 'firebase/auth';
+import { Facebook, GitHub, Google, Twitter, Window } from '@mui/icons-material';
+import { useAuth } from '../context/AuthContext';
 
 interface ProviderDetails {
   id: string;
@@ -22,49 +11,30 @@ interface ProviderDetails {
 }
 
 const StudentPage = () => {
-  const user = useSelector((state: RootState) => state.user.user);
   const [linkedProviders, setLinkedProviders] = useState<string[]>([]);
+  const { user, linkProviderWithPopup, unlinkProvider } = useAuth();
 
   const providerConfigs = [
     { id: 'google.com', icon: <Google />, name: 'Google', color: '#DB4437', provider: new GoogleAuthProvider() },
     { id: 'facebook.com', icon: <Facebook />, name: 'Facebook', color: '#3B5998', provider: new FacebookAuthProvider() },
     { id: 'twitter.com', icon: <Twitter />, name: 'Twitter', color: '#1DA1F2', provider: new TwitterAuthProvider() },
     { id: 'github.com', icon: <GitHub />, name: 'GitHub', color: '#333', provider: new GithubAuthProvider() },
-    { id: 'apple.com', icon: <Apple />, name: 'Apple', color: '#A3AAAE', provider: new OAuthProvider('apple.com') },
     { id: 'microsoft.com', icon: <Window />, name: 'Microsoft', color: '#F25022', provider: new OAuthProvider('microsoft.com') },
   ];
 
-  useEffect(() => {
+  useEffect((): void => {
     if (user && user.providerData) {
       const providers = user.providerData.map(({ providerId }) => providerId);
       setLinkedProviders(providers);
     }
   }, [user]);
 
-  const handleLinkProvider = (provider: ProviderDetails) => {
-    if (auth.currentUser) {
-      linkWithPopup(auth.currentUser, provider.provider)
-        .then((result) => {
-          console.log(`${provider.name} linked successfully`, result);
-          setLinkedProviders((prev) => [...prev, provider.id]);
-        })
-        .catch((error) => {
-          console.error(`Error linking ${provider.name}`, error);
-        });
-    }
+  const handleLinkProvider = async ({ provider }: ProviderDetails): Promise<void> => {
+    await linkProviderWithPopup(provider);
   };
 
-  const handleUnlinkProvider = (providerId: string) => {
-    if (auth.currentUser) {
-      unlink(auth.currentUser, providerId)
-        .then(() => {
-          console.log(`${providerId} unlinked successfully`);
-          setLinkedProviders((prev) => prev.filter((p) => p !== providerId));
-        })
-        .catch((error) => {
-          console.error(`Error unlinking ${providerId}`, error);
-        });
-    }
+  const handleUnlinkProvider = async (providerId: string): Promise<void> => {
+    await unlinkProvider(providerId);
   };
 
   return (

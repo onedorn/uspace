@@ -1,7 +1,6 @@
 import React, { SyntheticEvent, useState } from 'react';
 import { Alert, Avatar, Box, Button, Container, CssBaseline, Divider, IconButton, Link, TextField, Tooltip, Typography } from '@mui/material';
 import {
-  Apple as AppleIcon,
   Close as CloseIcon,
   Facebook as FacebookIcon,
   GitHub as GitHubIcon,
@@ -12,62 +11,32 @@ import {
   VisibilityOff as VisibilityOffIcon,
   Window as MicrosoftIcon,
 } from '@mui/icons-material';
-import {
-  browserSessionPersistence,
-  FacebookAuthProvider,
-  GithubAuthProvider,
-  GoogleAuthProvider,
-  OAuthProvider,
-  sendPasswordResetEmail,
-  setPersistence,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  TwitterAuthProvider,
-} from 'firebase/auth';
-import { auth } from '../firebase/config';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store/store';
-import { authUserFailure, authUserRequest } from '../store/user/user.actions';
-import { FirebaseError } from 'firebase/app';
+import { FacebookAuthProvider, GithubAuthProvider, GoogleAuthProvider, OAuthProvider, TwitterAuthProvider } from 'firebase/auth';
+import { useAuth } from '../context/AuthContext';
 
 const SignInPage = () => {
-  const dispatch = useDispatch();
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
   const [showPassword, setShowPassword] = useState(false);
 
-  const loading = useSelector((state: RootState) => state.user.loading);
+  const { loading, alert, clearAlert, signInUser, signInUserWithPopup, triggerPasswordResetEmail } = useAuth();
 
   const providerData = [
     { icon: <GoogleIcon />, provider: new GoogleAuthProvider(), label: 'Google', color: '#DB4437', iconColor: '#fff' },
     { icon: <GitHubIcon />, provider: new GithubAuthProvider(), label: 'GitHub', color: '#333', iconColor: '#fff' },
     { icon: <FacebookIcon />, provider: new FacebookAuthProvider(), label: 'Facebook', color: '#3B5998', iconColor: '#fff' },
-    { icon: <AppleIcon />, provider: new OAuthProvider('apple.com'), label: 'Apple', color: '#A3AAAE', iconColor: '#000' },
     { icon: <MicrosoftIcon />, provider: new OAuthProvider('microsoft.com'), label: 'Microsoft', color: '#F25022', iconColor: '#fff' },
     { icon: <TwitterIcon />, provider: new TwitterAuthProvider(), label: 'Twitter', color: '#1DA1F2', iconColor: '#fff' },
   ];
 
-  const handleLogInWithEmailAndPassword = (event: Event | SyntheticEvent<any, Event>) => {
+  const handleLogInWithEmailAndPassword = async (event: Event | SyntheticEvent<any, Event>): Promise<void> => {
     event.preventDefault();
 
-    setPersistence(auth, browserSessionPersistence).then(async () => {
-      try {
-        setAlert((prev) => ({ ...prev, open: false }));
-        dispatch(authUserRequest());
-        await signInWithEmailAndPassword(auth, email, password);
-      } catch (error) {
-        const firebaseError = error as FirebaseError;
-        dispatch(authUserFailure({ message: firebaseError.message }));
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      }
-    });
+    await signInUser(email, password);
   };
 
-  const handlePasswordResetEmail = (event: Event | SyntheticEvent<any, Event>) => {
+  const handlePasswordResetEmail = async (event: Event | SyntheticEvent<any, Event>): Promise<void> => {
     event.preventDefault();
-    setAlert((prev) => ({ ...prev, open: false }));
 
     const newEmail = prompt('Please enter your email address:');
 
@@ -75,26 +44,13 @@ const SignInPage = () => {
       return;
     }
 
-    sendPasswordResetEmail(auth, newEmail)
-      .then(() => {
-        setAlert({ open: true, message: 'Password reset email sent. Please check your inbox.', severity: 'success' });
-      })
-      .catch((error) => {
-        const firebaseError = error.message;
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      });
+    await triggerPasswordResetEmail(newEmail);
   };
 
-  const handleSignInWithProvider = (provider: GoogleAuthProvider | GithubAuthProvider | OAuthProvider | FacebookAuthProvider | TwitterAuthProvider) => {
-    setPersistence(auth, browserSessionPersistence).then(async () => {
-      try {
-        await signInWithPopup(auth, provider);
-      } catch (error) {
-        const firebaseError = error as FirebaseError;
-        dispatch(authUserFailure({ message: firebaseError.message }));
-        setAlert({ open: true, message: firebaseError.message, severity: 'error' });
-      }
-    });
+  const handleSignInWithProvider = async (
+    provider: GoogleAuthProvider | GithubAuthProvider | OAuthProvider | FacebookAuthProvider | TwitterAuthProvider
+  ): Promise<void> => {
+    await signInUserWithPopup(provider);
   };
 
   return (
@@ -212,14 +168,13 @@ const SignInPage = () => {
           </Box>
           {alert.open && (
             <Alert
-              severity={alert.severity as 'error' | 'info' | 'success' | 'warning'}
+              severity={alert.severity}
               sx={{ width: '100%', mt: 2 }}
               action={
-                <IconButton size="small" aria-label="close" color="inherit" onClick={() => setAlert((prev) => ({ ...prev, open: false }))}>
+                <IconButton size="small" aria-label="close" color="inherit" onClick={() => clearAlert()}>
                   <CloseIcon fontSize="small" />
                 </IconButton>
               }
-              onClose={() => setAlert((prev) => ({ ...prev, open: false }))}
             >
               {alert.message}
             </Alert>

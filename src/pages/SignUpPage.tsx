@@ -1,71 +1,32 @@
 import React, { useState } from 'react';
 import { Alert, Avatar, Box, Button, CircularProgress, Container, CssBaseline, IconButton, TextField, Typography } from '@mui/material';
-import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
-import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../store/store';
-import { authUserFailure, authUserRequest } from '../store/user/user.actions';
-import { auth } from '../firebase/config';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { FirebaseError } from 'firebase/app';
+import { Close as CloseIcon, Visibility, VisibilityOff } from '@mui/icons-material';
 import { validateEmail, validatePassword } from '../helpers/auth.helpres';
+import { useAuth } from '../context/AuthContext';
+import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 const SignUpPage = () => {
-  const dispatch = useDispatch();
-
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'info' });
   const [email, setEmail] = useState('');
   const [emailError, setEmailError] = useState('');
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const loading = useSelector((state: RootState) => state.user.loading);
+  const { loading, alert, clearAlert, createUser } = useAuth();
 
-  const handleCreateUserWithEmailAndPassword = async (event: React.FormEvent) => {
+  const handleCreateUserWithEmailAndPassword = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
 
-    try {
-      setAlert((prev) => ({ ...prev, open: false }));
-      dispatch(authUserRequest());
-      await createUserWithEmailAndPassword(auth, email, password);
-      await sendVerificationEmail();
-    } catch (error) {
-      const errMsg = error as FirebaseError;
-      dispatch(authUserFailure({ message: errMsg.message }));
-      setAlert({ open: true, message: errMsg.message, severity: 'error' });
-    }
+    await createUser(email, password);
   };
 
-  const sendVerificationEmail = async (): Promise<void> => {
-    try {
-      if (auth.currentUser) {
-        await sendEmailVerification(auth.currentUser);
-        setAlert({ open: true, message: 'Verification email sent. Please check your inbox.', severity: 'success' });
-      }
-    } catch (error) {
-      setAlert({ open: true, message: 'Failed to send verification email.', severity: 'error' });
-    }
-  };
-
-  const resendVerificationEmail = async () => {
-    try {
-      if (auth.currentUser) {
-        await sendEmailVerification(auth.currentUser);
-      }
-      setAlert({ open: true, message: 'Verification email re-sent. Please check your inbox.', severity: 'success' });
-    } catch (error) {
-      setAlert({ open: true, message: 'Failed to resend verification email.', severity: 'error' });
-    }
-  };
-
-  const handleEmailChange = (event: { target: { value: any } }) => {
+  const handleEmailChange = (event: { target: { value: any } }): void => {
     const newEmail = event.target.value;
     setEmail(newEmail);
     setEmailError(validateEmail(newEmail));
   };
 
-  const handlePasswordChange = (event: { target: { value: any } }) => {
+  const handlePasswordChange = (event: { target: { value: any } }): void => {
     const newPassword = event.target.value;
     setPassword(newPassword);
     setPasswordError(validatePassword(newPassword));
@@ -151,7 +112,15 @@ const SignUpPage = () => {
             Sign Up
           </Button>
           {alert.open && (
-            <Alert severity={alert.severity as 'error' | 'info' | 'success' | 'warning'} sx={{ width: '100%', mt: 2 }}>
+            <Alert
+              severity={alert.severity as 'error' | 'info' | 'success' | 'warning'}
+              sx={{ width: '100%', mt: 2 }}
+              action={
+                <IconButton size="small" aria-label="close" color="inherit" onClick={() => clearAlert()}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              }
+            >
               {alert.message}
             </Alert>
           )}
