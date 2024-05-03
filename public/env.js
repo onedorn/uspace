@@ -77,7 +77,7 @@ window.env = {
   "TEMP": "C:\\Users\\VOLODY~1\\AppData\\Local\\Temp",
   "TERM": "xterm-256color",
   "TERMINAL_EMULATOR": "JetBrains-JediTerm",
-  "TERM_SESSION_ID": "6adfaef1-b9ba-4326-b653-3981d7eff4b2",
+  "TERM_SESSION_ID": "e286a8e2-9fc1-47d3-9ff6-d57b97bc1609",
   "TMP": "C:\\Users\\VOLODY~1\\AppData\\Local\\Temp",
   "USERDNSDOMAIN": "epam.com",
   "USERDOMAIN": "EPAM",

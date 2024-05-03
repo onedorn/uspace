@@ -1,0 +1,4 @@
+{
+  "welcome": "Willkommen in der Notentabelle der Schüler!",
+  "description": "Dies ist eine einfache Web-App, mit der Sie eine Liste von Schülern und deren Noten erstellen können. Sie können Schüler zur Liste hinzufügen, bearbeiten und löschen. Sie können auch die Durchschnittsnote aller Schüler anzeigen."
+}

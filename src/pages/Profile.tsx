@@ -10,7 +10,7 @@ interface ProviderDetails {
   provider: GoogleAuthProvider | FacebookAuthProvider | TwitterAuthProvider | GithubAuthProvider | OAuthProvider | EmailAuthProvider;
 }
 
-const StudentPage = () => {
+const UserProfile = () => {
   const [linkedProviders, setLinkedProviders] = useState<string[]>([]);
   const { user, linkProviderWithPopup, unlinkProvider } = useAuth();
 
@@ -85,4 +85,4 @@ const StudentPage = () => {
   );
 };
 
-export default StudentPage;
+export default UserProfile;

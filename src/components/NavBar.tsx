@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AppBar, Avatar, Badge, Button, IconButton, styled, Toolbar, Tooltip, Typography } from '@mui/material';
+import { AppBar, Avatar, Badge, Button, IconButton, Menu, MenuItem, styled, Toolbar, Tooltip, Typography } from '@mui/material';
 import { User } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,9 @@ import LockIcon from '@mui/icons-material/Lock';
 import UpdateIcon from '@mui/icons-material/Update';
 import MailIcon from '@mui/icons-material/Mail';
 import NotificationsIcon from '@mui/icons-material/Notifications';
+import LanguageIcon from '@mui/icons-material/Language';
 import Logo from '../jack-russell-terrier-logo.png';
+import { useTranslation } from 'react-i18next';
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -45,8 +47,31 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
 
 function NavBar() {
   const navigate = useNavigate();
-
+  const { i18n } = useTranslation();
+  const [anchorEl, setAnchorEl] = useState(null);
+  const [selectedLang, setSelectedLang] = useState(i18n.language);
   const { user, signOutUser, updateUserEmail, updateUserPassword, updateUserProfile, deleteUserAccount } = useAuth();
+
+  const languageOptions = [
+    { code: 'en', name: 'English' },
+    { code: 'de', name: 'Deutsch' },
+    { code: 'fr', name: 'Français' },
+    { code: 'ua', name: 'Українська' },
+  ];
+
+  const handleMenu = (event: any) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  const changeLanguage = (langCode: string) => {
+    setSelectedLang(langCode);
+    i18n.changeLanguage(langCode);
+    handleClose();
+  };
 
   const createAvatarURL = () => {
     // Get all keys (collections) from the Avatars object
@@ -111,6 +136,41 @@ function NavBar() {
           <Typography variant="h6" color="inherit" component="div" sx={{ flexGrow: 1 }}>
             USpace
           </Typography>
+
+          <IconButton
+            size="large"
+            edge="end"
+            color="inherit" // color="primary"
+            aria-label="language"
+            aria-controls="menu-appbar"
+            aria-haspopup="true"
+            onClick={handleMenu}
+            sx={{ mr: 2 }}
+          >
+            <LanguageIcon />
+          </IconButton>
+          <Menu
+            id="menu-appbar"
+            anchorEl={anchorEl}
+            anchorOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            keepMounted
+            transformOrigin={{
+              vertical: 'top',
+              horizontal: 'right',
+            }}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+          >
+            {languageOptions.map((option) => (
+              <MenuItem key={option.code} onClick={() => changeLanguage(option.code)} selected={option.code === selectedLang}>
+                {option.name}
+              </MenuItem>
+            ))}
+          </Menu>
+
           {user ? (
             <>
               <IconButton size="large" aria-label="show 4 new mails" color="inherit">

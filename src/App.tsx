@@ -1,7 +1,10 @@
 import React from 'react';
 import { Box, Typography } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 const App = () => {
+  const { t } = useTranslation();
+
   return (
     <Box
       sx={{
@@ -9,16 +12,16 @@ const App = () => {
         flexDirection: 'column',
         justifyContent: 'center',
         alignItems: 'center',
-        height: '100vh', // Take full height of the viewport
-        backgroundColor: '#f0f0f0', // Light grey background
+        height: '100vh',
+        backgroundColor: '#f0f0f0',
         textAlign: 'center',
       }}
     >
       <Typography variant="h4" gutterBottom>
-        Welcome to Our Application
+        {t('welcome')}
       </Typography>
       <Typography variant="subtitle1" gutterBottom>
-        This area is accessible for not logged-in users. Please sign in to continue.
+        {t('description')}
       </Typography>
     </Box>
   );
