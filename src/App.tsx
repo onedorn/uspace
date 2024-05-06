@@ -1,28 +1,37 @@
 import React from 'react';
-import { Box, Typography } from '@mui/material';
-import { useTranslation } from 'react-i18next';
+import { Box } from '@mui/material';
+import { Outlet } from 'react-router-dom';
+import Navbar from './components/Navbar';
+import useAuthStateManagement from './hooks/useAuthStateManagement';
 
 const App = () => {
-  const { t } = useTranslation();
+  useAuthStateManagement();
 
   return (
     <Box
       sx={{
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#f0f0f0',
-        textAlign: 'center',
+        minHeight: '100vh',
+        bgcolor: 'background.paper',
       }}
     >
-      <Typography variant="h4" gutterBottom>
-        {t('welcome')}
-      </Typography>
-      <Typography variant="subtitle1" gutterBottom>
-        {t('description')}
-      </Typography>
+      <Navbar />
+      <Box
+        component="main"
+        sx={{
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%', // Ensures it takes full width
+          p: 3, // Applies padding uniformly around the content
+          boxSizing: 'border-box', // Ensures padding is included in width
+        }}
+      >
+        <Outlet />
+      </Box>
     </Box>
   );
 };

@@ -1,12 +1,10 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth } from '../firebase/config';
+import React, { createContext, useContext, useState } from 'react';
 import {
-  AuthProvider,
+  AuthProvider as FirebaseAuthProvider,
   browserSessionPersistence,
   createUserWithEmailAndPassword,
   deleteUser,
   linkWithPopup,
-  onAuthStateChanged,
   sendEmailVerification,
   sendPasswordResetEmail,
   setPersistence,
@@ -17,211 +15,213 @@ import {
   updateEmail,
   updatePassword,
   updateProfile,
-  User,
+  User as FirebaseUser,
 } from 'firebase/auth';
-import { NavigateFunction } from 'react-router-dom';
+import { useStatus } from './StatusContext';
+import { defaultTheme, useTheme } from './ThemeContext';
+import { defaultLanguage, useLanguage } from './LanguageContext';
+import { useFirestore } from './FirestoreContext';
+import { auth } from '../firebase/config';
 import { FirebaseError } from 'firebase/app';
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  alert: { open: boolean; message: string; severity: 'error' | 'info' | 'success' | 'warning' };
-  setAlert: (message: string, severity: 'error' | 'info' | 'success' | 'warning') => void;
-  clearAlert: () => void;
-  createUser: (email: string, password: string) => Promise<void>;
-  signInUser: (email: string, password: string) => Promise<void>;
-  signOutUser: () => Promise<void>;
-  signInUserWithPopup: (provider: AuthProvider) => Promise<void>;
-  updateUserProfile: (updates: { displayName?: string; photoURL?: string }) => Promise<void>;
-  updateUserEmail: (newEmail: string) => Promise<void>;
-  updateUserPassword: (newPassword: string) => Promise<void>;
-  deleteUserAccount: () => Promise<void>;
-  triggerPasswordResetEmail: (email: string) => Promise<void>;
-  linkProviderWithPopup: (provider: AuthProvider) => Promise<void>;
-  unlinkProvider: (providerId: string) => Promise<void>;
+  user: FirebaseUser | null;
+  setUser: (user: FirebaseUser | null) => void;
+  createUser: (email: string, password: string) => void;
+  signInUser: (email: string, password: string) => void;
+  signOutUser: () => void;
+  updateUserProfile: (updates: { displayName?: string; photoURL?: string }) => void;
+  updateUserEmail: (newEmail: string) => void;
+  deleteUserAccount: () => void;
+  updateUserPassword: (newPassword: string) => void;
+  signInUserWithPopup: (provider: FirebaseAuthProvider) => void;
+  triggerPasswordResetEmail: (email: string) => void;
+  linkProviderWithPopup: (provider: FirebaseAuthProvider) => void;
+  unlinkProvider: (providerId: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-export const AuthContextProvider = ({ children, navigate }: { children: React.ReactNode; navigate: NavigateFunction }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [alert, setAlertState] = useState({ open: false, message: '', severity: 'info' as 'error' | 'info' | 'success' | 'warning' });
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const { setLoading, setAlert } = useStatus();
+  const { setTheme } = useTheme();
+  const { setLanguage } = useLanguage();
+  const { getDocument, updateDocument, deleteDocument } = useFirestore();
 
-  useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser: User | null) => {
-      setLoading(false);
-
-      if (currentUser) {
-        if (!currentUser.emailVerified) {
-          await signOut(auth);
-          setUser(null);
-          setAlert('Verification email sent. Please check your inbox.', 'success');
-          console.log('User email not verified, logged out', currentUser);
-        } else {
-          setUser(currentUser);
-          navigate('/student');
-          console.log('User successfully logged in', currentUser);
-        }
-      } else {
-        navigate('/signin');
-      }
-    });
-
-    return () => unsubscribe();
-  }, [navigate]);
-
-  const setAlert = (message: string, severity: 'error' | 'info' | 'success' | 'warning'): void => {
-    setAlertState({ open: true, message, severity });
-  };
-
-  const clearAlert = (): void => {
-    setAlertState({ open: false, message: '', severity: 'info' });
-  };
-
-  const createUser = async (email: string, password: string): Promise<void> => {
+  const createUser = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
       await setPersistence(auth, browserSessionPersistence);
-      await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(auth.currentUser as User);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await sendEmailVerification(userCredential.user);
       setAlert('Verification email sent. Please check your inbox.', 'success');
     } catch (error) {
+      setLoading(false);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const signInUser = async (email: string, password: string): Promise<void> => {
+  const signInUser = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
       await setPersistence(auth, browserSessionPersistence);
       await signInWithEmailAndPassword(auth, email, password);
     } catch (error) {
+      setLoading(false);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
-      setLoading(false);
+      // setLoading(false);
     }
   };
 
-  const signOutUser = async (): Promise<void> => {
+  const signOutUser = async () => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
       await signOut(auth);
+      // Reset or clear theme and language settings if necessary
+      setTheme(defaultTheme); // Reset to default or last known setting
+      setLanguage(defaultLanguage); // Reset to default or last known setting
     } catch (error) {
+      setLoading(false);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateUserProfile = async (updates: { displayName?: string; photoURL?: string }): Promise<void> => {
+  const updateUserProfile = async (updates: any) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
-      await updateProfile(auth.currentUser as User, {
-        displayName: updates.displayName,
-        photoURL: updates.photoURL,
-      });
-      setUser({ ...(auth.currentUser as User), ...updates });
+      await updateProfile(auth.currentUser as FirebaseUser, updates);
+      await updateDocument('users', (auth.currentUser as FirebaseUser).uid, updates);
+      setUser({ ...user, ...updates });
+      setAlert('Profile updated successfully.', 'success');
+      console.log('Profile updated successfully.');
     } catch (error) {
+      console.error('Failed to update profile:', error);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateUserEmail = async (newEmail: string): Promise<void> => {
+  const updateUserEmail = async (newEmail: string) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
-      await updateEmail(auth.currentUser as User, newEmail);
-      setUser({ ...(auth.currentUser as User), email: newEmail });
+      const authUser = auth.currentUser as FirebaseUser;
+      await updateEmail(authUser, newEmail);
+      await updateDocument('users', authUser.uid, { email: newEmail });
+      console.log('Email updated successfully.');
+      setUser({ ...authUser, email: newEmail });
+      setAlert('Email updated successfully.', 'success');
     } catch (error) {
+      console.error('Failed to update email:', error);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const updateUserPassword = async (newPassword: string): Promise<void> => {
+  const deleteUserAccount = async () => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
-      await updatePassword(auth.currentUser as User, newPassword);
+      const authUser = auth.currentUser as FirebaseUser;
+      await deleteUser(authUser);
+      await deleteDocument('users', authUser.uid);
+      setAlert('User deleted successfully.', 'success');
+      console.log('User deleted successfully.');
+      // Additional clean up could go here (e.g., navigate, clear state)
     } catch (error) {
+      console.error('Failed to delete user:', error);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const deleteUserAccount = async (): Promise<void> => {
+  const updateUserPassword = async (newPassword: string) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
-      await deleteUser(auth.currentUser as User);
-      setUser(null);
+      await updatePassword(auth.currentUser as FirebaseUser, newPassword);
+      setAlert('Password updated successfully.', 'success');
+      console.log('Password updated successfully.');
     } catch (error) {
+      console.error('Failed to update password:', error);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const triggerPasswordResetEmail = async (email: string): Promise<void> => {
+  const signInUserWithPopup = async (provider: FirebaseAuthProvider) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
+      await setPersistence(auth, browserSessionPersistence);
+      await signInWithPopup(auth, provider);
+      setAlert('Logged in successfully!', 'success');
+      console.log('Logged in successfully!', 'success');
+    } catch (error) {
+      console.error('Error signing in with popup:', error);
+      setAlert((error as FirebaseError).message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const triggerPasswordResetEmail = async (email: string) => {
+    setLoading(true);
+    try {
       await sendPasswordResetEmail(auth, email);
       setAlert('Password reset email sent. Please check your inbox.', 'success');
-      setLoading(false);
+      console.log('Password reset email sent. Please check your inbox.');
     } catch (error) {
+      console.error('Failed to send password reset email:', error);
       setAlert((error as FirebaseError).message, 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const signInUserWithPopup = async (provider: AuthProvider): Promise<void> => {
+  const linkProviderWithPopup = async (provider: FirebaseAuthProvider) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
-      await setPersistence(auth, browserSessionPersistence);
-      const result = await signInWithPopup(auth, provider);
-      setUser(result.user);
+      const credentials = await linkWithPopup(auth.currentUser!, provider);
+      const userData = await getDocument('users', credentials.user.uid);
+      const userUpdated = { ...userData, providerData: credentials.user.providerData };
+
+      await updateDocument('users', credentials.user.uid, userUpdated);
+
+      setUser(userUpdated);
+      setAlert('Provider linked successfully!', 'success');
+      console.log('Provider linked:', credentials);
     } catch (error) {
+      console.error('Error linking provider:', error);
       setAlert((error as FirebaseError).message, 'error');
+      console.log('Provider linking error:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const linkProviderWithPopup = async (provider: AuthProvider): Promise<void> => {
+  const unlinkProvider = async (providerId: string) => {
+    setLoading(true);
     try {
-      clearAlert();
-      setLoading(true);
-      const result = await linkWithPopup(auth.currentUser as User, provider);
-      setUser(result.user);
-    } catch (error) {
-      setAlert((error as FirebaseError).message, 'error');
-    } finally {
-      setLoading(false);
-    }
-  };
+      const credentials = await unlink(auth.currentUser!, providerId);
+      const userData = await getDocument('users', credentials.uid);
+      const userUpdated = { ...userData, providerData: credentials.providerData };
 
-  const unlinkProvider = async (providerId: string): Promise<void> => {
-    try {
-      clearAlert();
-      setLoading(true);
-      const result = await unlink(auth.currentUser as User, providerId);
-      setUser(result);
+      await updateDocument('users', credentials.uid, userUpdated);
+
+      setUser(userUpdated);
+      setAlert('Provider unlinked successfully!', 'success');
+      console.log('Provider unlinked:', credentials);
     } catch (error) {
+      console.error('Error unlinking provider:', error);
       setAlert((error as FirebaseError).message, 'error');
+      console.log('Provider unlinking error:', error);
     } finally {
       setLoading(false);
     }
@@ -231,19 +231,16 @@ export const AuthContextProvider = ({ children, navigate }: { children: React.Re
     <AuthContext.Provider
       value={{
         user,
-        loading,
-        alert,
-        setAlert,
-        clearAlert,
+        setUser,
         createUser,
         signInUser,
         signOutUser,
         updateUserProfile,
         updateUserEmail,
-        updateUserPassword,
         deleteUserAccount,
-        triggerPasswordResetEmail,
+        updateUserPassword,
         signInUserWithPopup,
+        triggerPasswordResetEmail,
         linkProviderWithPopup,
         unlinkProvider,
       }}
@@ -256,7 +253,7 @@ export const AuthContextProvider = ({ children, navigate }: { children: React.Re
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within a AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

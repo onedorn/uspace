@@ -1,7 +1,6 @@
 import React, { SyntheticEvent, useState } from 'react';
-import { Alert, Avatar, Box, Button, Container, CssBaseline, Divider, IconButton, Link, TextField, Tooltip, Typography } from '@mui/material';
+import { Avatar, Box, Button, Container, CssBaseline, Divider, IconButton, Link, TextField, Tooltip, Typography } from '@mui/material';
 import {
-  Close as CloseIcon,
   Facebook as FacebookIcon,
   GitHub as GitHubIcon,
   Google as GoogleIcon,
@@ -13,13 +12,15 @@ import {
 } from '@mui/icons-material';
 import { FacebookAuthProvider, GithubAuthProvider, GoogleAuthProvider, OAuthProvider, TwitterAuthProvider } from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
+import { useStatus } from '../context/StatusContext';
 
 const SignInPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const { loading, alert, clearAlert, signInUser, signInUserWithPopup, triggerPasswordResetEmail } = useAuth();
+  const { loading } = useStatus();
+  const { signInUser, triggerPasswordResetEmail, signInUserWithPopup } = useAuth();
 
   const providerData = [
     { icon: <GoogleIcon />, provider: new GoogleAuthProvider(), label: 'Google', color: '#DB4437', iconColor: '#fff' },
@@ -62,6 +63,8 @@ const SignInPage = () => {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
+          // opacity: loading ? 0.5 : 1,
+          // pointerEvents: loading ? 'none' : 'auto',
         }}
       >
         <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
@@ -166,19 +169,6 @@ const SignInPage = () => {
               </Tooltip>
             ))}
           </Box>
-          {alert.open && (
-            <Alert
-              severity={alert.severity}
-              sx={{ width: '100%', mt: 2 }}
-              action={
-                <IconButton size="small" aria-label="close" color="inherit" onClick={() => clearAlert()}>
-                  <CloseIcon fontSize="small" />
-                </IconButton>
-              }
-            >
-              {alert.message}
-            </Alert>
-          )}
         </Box>
       </Box>
     </Container>

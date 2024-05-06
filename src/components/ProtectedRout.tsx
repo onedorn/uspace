@@ -1,10 +1,12 @@
 import React from 'react';
+import { Box, CircularProgress } from '@mui/material';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Box, CircularProgress } from '@mui/material';
+import { useStatus } from '../context/StatusContext';
 
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
+  const { loading } = useStatus();
 
   if (loading) {
     return (

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { Alert, Avatar, Box, Button, CircularProgress, Container, CssBaseline, IconButton, TextField, Typography } from '@mui/material';
-import { Close as CloseIcon, Visibility, VisibilityOff } from '@mui/icons-material';
+import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { validateEmail, validatePassword } from '../helpers/auth.helpres';
 import { useAuth } from '../context/AuthContext';
+import { useStatus } from '../context/StatusContext';
+import CloseIcon from '@mui/icons-material/Close';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 
 const SignUpPage = () => {
@@ -12,7 +14,8 @@ const SignUpPage = () => {
   const [passwordError, setPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const { loading, alert, clearAlert, createUser } = useAuth();
+  const { createUser } = useAuth();
+  const { loading, alert, clearAlert } = useStatus();
 
   const handleCreateUserWithEmailAndPassword = async (event: React.FormEvent): Promise<void> => {
     event.preventDefault();
