@@ -1,6 +1,5 @@
 import React, { Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import reportWebVitals from './reportWebVitals';
 import './index.css';
 import './i18n/config';
 import './firebase/config';
@@ -64,5 +63,3 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     </LanguageProvider>
   </React.StrictMode>
 );
-
-reportWebVitals();
