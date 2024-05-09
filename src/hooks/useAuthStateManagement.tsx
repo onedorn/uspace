@@ -5,17 +5,17 @@ import { useStatus } from '../context/StatusContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useFirestore } from '../context/FirestoreContext';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { mapUserData } from '../helpers/user.helpers';
 
 const useAuthStateManagement = () => {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
-  const { setLoading, setAlert } = useStatus();
-  const { setTheme } = useTheme();
-  const { setLanguage } = useLanguage();
+  const { setUser, signOutUser, triggerEmailVerification } = useAuth();
   const { getDocument, setDocument } = useFirestore();
+  const { setLoading, setAlert } = useStatus();
+  const { setLanguage } = useLanguage();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -23,13 +23,23 @@ const useAuthStateManagement = () => {
       try {
         if (currentUser && currentUser.emailVerified) {
           let userData = await getDocument('users', currentUser.uid);
+          let userTemplateData = null;
 
           if (!userData) {
-            // Handle new user or missing data scenarios
-            // Initialize with defaults or data from the currentUser object
             userData = mapUserData(currentUser);
+            userTemplateData = createEmailTemplateData(currentUser);
             await setDocument('users', currentUser.uid, userData);
+            await setDocument('mail', currentUser.uid, userTemplateData);
             console.log('User data initialized.');
+          }
+
+          if (userData.providerData.length !== currentUser.providerData.length) {
+            userData.providerData = currentUser.providerData;
+            await setDocument('users', currentUser.uid, {
+              ...userData,
+              providerData: currentUser.providerData,
+            });
+            console.log('User provider data updated.');
           }
 
           setUser(userData);
@@ -37,16 +47,14 @@ const useAuthStateManagement = () => {
           setLanguage(userData.preferences.language);
           navigate('/student');
           console.log('User is signed in.', userData);
+        } else if (currentUser) {
+          triggerEmailVerification();
+          signOutUser();
+          console.log('User is signed out.');
+          navigate('/signin');
         } else {
-          if (currentUser) {
-            // Handle email verification scenarios
-            await signOut(auth);
-            console.log('User is signed out.');
-            setAlert('Please verify your email to proceed.', 'warning');
-          }
-
-          // Handle sign out scenarios
           setUser(null);
+          console.log('User is signed out.');
           navigate('/signin');
         }
       } catch (error) {
@@ -60,6 +68,20 @@ const useAuthStateManagement = () => {
 
     return () => unsubscribe();
   }, []);
+
+  const createEmailTemplateData = (currentUser: User): object => {
+    return {
+      to: [currentUser.email],
+      template: {
+        name: 'subscribe',
+        data: {
+          email: currentUser.email,
+          username: currentUser.displayName || 'USpace student',
+          signupDate: currentUser.metadata.creationTime,
+        },
+      },
+    };
+  };
 
   return null;
 };
