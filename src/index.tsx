@@ -17,9 +17,9 @@ import SignInPage from './components/SignInPage';
 import SignUpPage from './components/SignUpPage';
 import ProtectedRoute from './components/ProtectedRout';
 import UserProfile from './components/Profile';
-import GlobalAlert from './components/GlobalAlert';
 import UserSettings from './components/UserSettings';
 import UserDetails from './components/UserDetails';
+import GlobalAlert from './components/GlobalAlert';
 
 const router = createBrowserRouter([
   {

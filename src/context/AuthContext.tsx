@@ -4,6 +4,8 @@ import {
   browserSessionPersistence,
   createUserWithEmailAndPassword,
   deleteUser,
+  EmailAuthProvider,
+  linkWithCredential,
   linkWithPopup,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -38,6 +40,7 @@ interface AuthContextType {
   triggerPasswordResetEmail: (email: string) => void;
   triggerEmailVerification: () => void;
   linkProviderWithPopup: (provider: FirebaseAuthProvider) => void;
+  linkWithEmailAndPassword: (email: string, password: string) => void;
   unlinkProvider: (providerId: string) => void;
 }
 
@@ -132,7 +135,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await deleteDocument('users', authUser.uid);
       setAlert('User deleted successfully.', 'success');
       console.log('User deleted successfully.');
-      // Additional clean up could go here (e.g., navigate, clear state)
     } catch (error) {
       console.error('Failed to delete user:', error);
       setAlert((error as FirebaseError).message, 'error');
@@ -179,6 +181,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Failed to send verification email:', error);
       setAlert((error as FirebaseError).message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const linkWithEmailAndPassword = async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const credential = EmailAuthProvider.credential(email, password);
+      const credentials = await linkWithCredential(auth.currentUser as FirebaseUser, credential);
+      const userData = await getDocument('users', credentials.user.uid);
+      const userUpdated = { ...userData, providerData: credentials.user.providerData };
+
+      await updateDocument('users', credentials.user.uid, userUpdated);
+      setUser(userUpdated);
+      setAlert('Account linked to email and password', 'success');
+    } catch (error) {
+      console.log('Error linking email:', error);
+      setAlert('Error linking email:', 'error');
     } finally {
       setLoading(false);
     }
@@ -256,6 +277,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         triggerPasswordResetEmail,
         triggerEmailVerification,
         linkProviderWithPopup,
+        linkWithEmailAndPassword,
         unlinkProvider,
       }}
     >

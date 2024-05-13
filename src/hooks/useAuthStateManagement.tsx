@@ -18,28 +18,46 @@ const useAuthStateManagement = () => {
   const { setTheme } = useTheme();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser): Promise<void> => {
       setLoading(true);
       try {
-        if (currentUser && currentUser.emailVerified) {
+        if (currentUser) {
           let userData = await getDocument('users', currentUser.uid);
-          let userTemplateData = null;
+          const isPasswordProvider = currentUser.providerData.some(({ providerId }) => providerId === 'password');
+          const isSocialProvider = currentUser.providerData.some(({ providerId }) => providerId !== 'password');
 
-          if (!userData) {
-            userData = mapUserData(currentUser);
-            userTemplateData = createEmailTemplateData(currentUser);
-            await setDocument('users', currentUser.uid, userData);
-            await setDocument('mail', currentUser.uid, userTemplateData);
-            console.log('User data initialized.');
+          if (isPasswordProvider && !currentUser.emailVerified) {
+            triggerEmailVerification();
+            signOutUser();
+            navigate('/signin');
+            return;
           }
 
-          if (userData.providerData.length !== currentUser.providerData.length) {
+          if ((isPasswordProvider || isSocialProvider) && !userData) {
+            userData = mapUserData(currentUser);
+            await setDocument('users', currentUser.uid, userData);
+            await setDocument('mail', currentUser.uid, createEmailTemplateData(currentUser));
+          }
+
+          if (
+            userData.providerData.length !== currentUser.providerData.length ||
+            userData.providerData.some(({ providerId }: User, index: number) => providerId !== currentUser.providerData[index].providerId)
+          ) {
             userData.providerData = currentUser.providerData;
             await setDocument('users', currentUser.uid, {
               ...userData,
               providerData: currentUser.providerData,
             });
-            console.log('User provider data updated.');
+            console.log('User provider data updated.', userData);
+          }
+
+          if (userData.emailVerified !== currentUser.emailVerified) {
+            userData.emailVerified = currentUser.emailVerified;
+            await setDocument('users', currentUser.uid, {
+              ...userData,
+              emailVerified: currentUser.emailVerified,
+            });
+            console.log('Email verified data updated.', userData);
           }
 
           setUser(userData);
@@ -47,11 +65,6 @@ const useAuthStateManagement = () => {
           setLanguage(userData.preferences.language);
           navigate('/student');
           console.log('User is signed in.', userData);
-        } else if (currentUser) {
-          triggerEmailVerification();
-          signOutUser();
-          console.log('User is signed out.');
-          navigate('/signin');
         } else {
           setUser(null);
           console.log('User is signed out.');
