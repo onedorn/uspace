@@ -1,7 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Avatar, Container, IconButton, Stack, Tooltip, Typography } from '@mui/material';
-import { EmailAuthProvider, FacebookAuthProvider, GithubAuthProvider, GoogleAuthProvider, OAuthProvider, TwitterAuthProvider, User } from 'firebase/auth';
-import { Facebook, GitHub, Google, Twitter, Window } from '@mui/icons-material';
+import {
+  EmailAuthProvider,
+  FacebookAuthProvider,
+  GithubAuthProvider,
+  GoogleAuthProvider,
+  OAuthProvider,
+  TwitterAuthProvider,
+  User,
+} from 'firebase/auth';
+import { Facebook, GitHub, Google, Mail, Twitter, Window } from '@mui/icons-material';
 import { useAuth } from '../context/AuthContext';
 import { auth } from '../firebase/config';
 import { useTheme as useMuiTheme } from '@mui/material/styles';
@@ -21,10 +29,11 @@ interface ProviderDetails {
 
 const UserProfile = () => {
   const [linkedProviders, setLinkedProviders] = useState<string[]>([]);
-  const { user, signOutUser, linkProviderWithPopup, unlinkProvider, updateUserProfile, updateUserEmail, updateUserPassword, deleteUserAccount } = useAuth();
+  const { user, signOutUser, linkProviderWithPopup, unlinkProvider, updateUserProfile, updateUserEmail, updateUserPassword, deleteUserAccount, linkWithEmailAndPassword } = useAuth();
   const theme = useMuiTheme();
 
   const providerConfigs = [
+    { id: 'password', icon: <Mail />, name: 'Mail', color: '#504c4c', provider: new EmailAuthProvider() },
     { id: 'google.com', icon: <Google />, name: 'Google', color: '#DB4437', provider: new GoogleAuthProvider() },
     { id: 'facebook.com', icon: <Facebook />, name: 'Facebook', color: '#3B5998', provider: new FacebookAuthProvider() },
     { id: 'twitter.com', icon: <Twitter />, name: 'Twitter', color: '#1DA1F2', provider: new TwitterAuthProvider() },
@@ -85,27 +94,35 @@ const UserProfile = () => {
   };
 
   const handleDeleteUser = async (): Promise<void> => {
-    await deleteUserAccount();
+    deleteUserAccount();
   };
 
   const handleSignOut = async (): Promise<void> => {
-    await signOutUser();
+    signOutUser();
   };
 
   const handleLinkProvider = async ({ provider }: ProviderDetails): Promise<void> => {
-    await linkProviderWithPopup(provider);
+    if (provider.providerId === 'password') {
+      const email = prompt('Enter your email:', '');
+      const password = prompt('Enter your password:', '');
+
+      if (email === null || password === null) {
+        return;
+      }
+
+      linkWithEmailAndPassword(email, password);
+    } else {
+      linkProviderWithPopup(provider);
+    }
   };
 
   const handleUnlinkProvider = async (providerId: string): Promise<void> => {
-    await unlinkProvider(providerId);
+    if (providerId === 'password') {
+      unlinkProvider(providerId);
+    } else {
+      unlinkProvider(providerId);
+    }
   };
-
-  // <Box sx={{ display: 'flex', width: '100%' }}>
-  //   <Sidebar />
-  //   <Container maxWidth="lg" sx={{ flexGrow: 1, mt: 8, mb: 4 }}>
-  //     <Outlet /> {/* This will render the content based on nested route */}
-  //   </Container>
-  // </Box>
 
   return (
     <Container maxWidth="sm" sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>

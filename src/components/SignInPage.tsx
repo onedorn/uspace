@@ -1,5 +1,17 @@
 import React, { SyntheticEvent, useState } from 'react';
-import { Avatar, Box, Button, Container, CssBaseline, Divider, IconButton, Link, TextField, Tooltip, Typography } from '@mui/material';
+import {
+  Avatar,
+  Box,
+  Button,
+  Container,
+  CssBaseline,
+  Divider,
+  IconButton,
+  Link,
+  TextField,
+  Tooltip,
+  Typography,
+} from '@mui/material';
 import {
   Facebook as FacebookIcon,
   GitHub as GitHubIcon,
@@ -10,7 +22,13 @@ import {
   VisibilityOff as VisibilityOffIcon,
   Window as MicrosoftIcon,
 } from '@mui/icons-material';
-import { FacebookAuthProvider, GithubAuthProvider, GoogleAuthProvider, OAuthProvider, TwitterAuthProvider } from 'firebase/auth';
+import {
+  FacebookAuthProvider,
+  GithubAuthProvider,
+  GoogleAuthProvider,
+  OAuthProvider,
+  TwitterAuthProvider,
+} from 'firebase/auth';
 import { useAuth } from '../context/AuthContext';
 import { useStatus } from '../context/StatusContext';
 
@@ -30,13 +48,13 @@ const SignInPage = () => {
     { icon: <TwitterIcon />, provider: new TwitterAuthProvider(), label: 'Twitter', color: '#1DA1F2', iconColor: '#fff' },
   ];
 
-  const handleLogInWithEmailAndPassword = async (event: Event | SyntheticEvent<any, Event>): Promise<void> => {
+  const handleLogInWithEmailAndPassword = (event: Event | SyntheticEvent<any, Event>): void => {
     event.preventDefault();
 
-    await signInUser(email, password);
+    signInUser(email, password);
   };
 
-  const handlePasswordResetEmail = async (event: Event | SyntheticEvent<any, Event>): Promise<void> => {
+  const handlePasswordResetEmail = (event: Event | SyntheticEvent<any, Event>): void => {
     event.preventDefault();
 
     const newEmail = prompt('Please enter your email address:');
@@ -45,13 +63,13 @@ const SignInPage = () => {
       return;
     }
 
-    await triggerPasswordResetEmail(newEmail);
+    triggerPasswordResetEmail(newEmail);
   };
 
-  const handleSignInWithProvider = async (
+  const handleSignInWithProvider = (
     provider: GoogleAuthProvider | GithubAuthProvider | OAuthProvider | FacebookAuthProvider | TwitterAuthProvider
-  ): Promise<void> => {
-    await signInUserWithPopup(provider);
+  ): void => {
+    signInUserWithPopup(provider);
   };
 
   return (

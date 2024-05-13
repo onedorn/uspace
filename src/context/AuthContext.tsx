@@ -4,6 +4,8 @@ import {
   browserSessionPersistence,
   createUserWithEmailAndPassword,
   deleteUser,
+  EmailAuthProvider,
+  linkWithCredential,
   linkWithPopup,
   sendEmailVerification,
   sendPasswordResetEmail,
@@ -36,7 +38,9 @@ interface AuthContextType {
   updateUserPassword: (newPassword: string) => void;
   signInUserWithPopup: (provider: FirebaseAuthProvider) => void;
   triggerPasswordResetEmail: (email: string) => void;
+  triggerEmailVerification: () => void;
   linkProviderWithPopup: (provider: FirebaseAuthProvider) => void;
+  linkWithEmailAndPassword: (email: string, password: string) => void;
   unlinkProvider: (providerId: string) => void;
 }
 
@@ -49,12 +53,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const { setLanguage } = useLanguage();
   const { getDocument, updateDocument, deleteDocument } = useFirestore();
 
-  const createUser = async (email: string, password: string) => {
+  const createUser = async (email: string, password: string): Promise<void> => {
     setLoading(true);
     try {
       await setPersistence(auth, browserSessionPersistence);
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      await sendEmailVerification(userCredential.user);
+      await createUserWithEmailAndPassword(auth, email, password);
       setAlert('Verification email sent. Please check your inbox.', 'success');
     } catch (error) {
       setLoading(false);
@@ -64,7 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signInUser = async (email: string, password: string) => {
+  const signInUser = async (email: string, password: string): Promise<void> => {
     setLoading(true);
     try {
       await setPersistence(auth, browserSessionPersistence);
@@ -77,13 +80,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signOutUser = async () => {
+  const signOutUser = async (): Promise<void> => {
     setLoading(true);
     try {
       await signOut(auth);
-      // Reset or clear theme and language settings if necessary
-      setTheme(defaultTheme); // Reset to default or last known setting
-      setLanguage(defaultLanguage); // Reset to default or last known setting
+      setTheme(defaultTheme);
+      setLanguage(defaultLanguage);
     } catch (error) {
       setLoading(false);
       setAlert((error as FirebaseError).message, 'error');
@@ -92,7 +94,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUserProfile = async (updates: any) => {
+  const updateUserProfile = async (updates: any): Promise<void> => {
     setLoading(true);
     try {
       await updateProfile(auth.currentUser as FirebaseUser, updates);
@@ -108,7 +110,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUserEmail = async (newEmail: string) => {
+  const updateUserEmail = async (newEmail: string): Promise<void> => {
     setLoading(true);
     try {
       const authUser = auth.currentUser as FirebaseUser;
@@ -125,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const deleteUserAccount = async () => {
+  const deleteUserAccount = async (): Promise<void> => {
     setLoading(true);
     try {
       const authUser = auth.currentUser as FirebaseUser;
@@ -133,7 +135,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       await deleteDocument('users', authUser.uid);
       setAlert('User deleted successfully.', 'success');
       console.log('User deleted successfully.');
-      // Additional clean up could go here (e.g., navigate, clear state)
     } catch (error) {
       console.error('Failed to delete user:', error);
       setAlert((error as FirebaseError).message, 'error');
@@ -142,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUserPassword = async (newPassword: string) => {
+  const updateUserPassword = async (newPassword: string): Promise<void> => {
     setLoading(true);
     try {
       await updatePassword(auth.currentUser as FirebaseUser, newPassword);
@@ -156,7 +157,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signInUserWithPopup = async (provider: FirebaseAuthProvider) => {
+  const signInUserWithPopup = async (provider: FirebaseAuthProvider): Promise<void> => {
     setLoading(true);
     try {
       await setPersistence(auth, browserSessionPersistence);
@@ -171,7 +172,40 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const triggerPasswordResetEmail = async (email: string) => {
+  const triggerEmailVerification = async (): Promise<void> => {
+    setLoading(true);
+    try {
+      await sendEmailVerification(auth.currentUser as FirebaseUser);
+      setAlert('Verification email sent. Please check your inbox.', 'success');
+      console.log('Verification email sent. Please check your inbox.');
+    } catch (error) {
+      console.error('Failed to send verification email:', error);
+      setAlert((error as FirebaseError).message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const linkWithEmailAndPassword = async (email: string, password: string): Promise<void> => {
+    setLoading(true);
+    try {
+      const credential = EmailAuthProvider.credential(email, password);
+      const credentials = await linkWithCredential(auth.currentUser as FirebaseUser, credential);
+      const userData = await getDocument('users', credentials.user.uid);
+      const userUpdated = { ...userData, providerData: credentials.user.providerData };
+
+      await updateDocument('users', credentials.user.uid, userUpdated);
+      setUser(userUpdated);
+      setAlert('Account linked to email and password', 'success');
+    } catch (error) {
+      console.log('Error linking email:', error);
+      setAlert('Error linking email:', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const triggerPasswordResetEmail = async (email: string): Promise<void> => {
     setLoading(true);
     try {
       await sendPasswordResetEmail(auth, email);
@@ -185,7 +219,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const linkProviderWithPopup = async (provider: FirebaseAuthProvider) => {
+  const linkProviderWithPopup = async (provider: FirebaseAuthProvider): Promise<void> => {
     setLoading(true);
     try {
       const credentials = await linkWithPopup(auth.currentUser!, provider);
@@ -206,7 +240,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const unlinkProvider = async (providerId: string) => {
+  const unlinkProvider = async (providerId: string): Promise<void> => {
     setLoading(true);
     try {
       const credentials = await unlink(auth.currentUser!, providerId);
@@ -241,7 +275,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUserPassword,
         signInUserWithPopup,
         triggerPasswordResetEmail,
+        triggerEmailVerification,
         linkProviderWithPopup,
+        linkWithEmailAndPassword,
         unlinkProvider,
       }}
     >

@@ -5,31 +5,59 @@ import { useStatus } from '../context/StatusContext';
 import { useTheme } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useFirestore } from '../context/FirestoreContext';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, User } from 'firebase/auth';
 import { auth } from '../firebase/config';
 import { mapUserData } from '../helpers/user.helpers';
 
 const useAuthStateManagement = () => {
   const navigate = useNavigate();
-  const { setUser } = useAuth();
-  const { setLoading, setAlert } = useStatus();
-  const { setTheme } = useTheme();
-  const { setLanguage } = useLanguage();
+  const { setUser, signOutUser, triggerEmailVerification } = useAuth();
   const { getDocument, setDocument } = useFirestore();
+  const { setLoading, setAlert } = useStatus();
+  const { setLanguage } = useLanguage();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser): Promise<void> => {
       setLoading(true);
       try {
-        if (currentUser && currentUser.emailVerified) {
+        if (currentUser) {
           let userData = await getDocument('users', currentUser.uid);
+          const isPasswordProvider = currentUser.providerData.some(({ providerId }) => providerId === 'password');
+          const isSocialProvider = currentUser.providerData.some(({ providerId }) => providerId !== 'password');
 
-          if (!userData) {
-            // Handle new user or missing data scenarios
-            // Initialize with defaults or data from the currentUser object
+          if (isPasswordProvider && !currentUser.emailVerified) {
+            triggerEmailVerification();
+            signOutUser();
+            navigate('/signin');
+            return;
+          }
+
+          if ((isPasswordProvider || isSocialProvider) && !userData) {
             userData = mapUserData(currentUser);
             await setDocument('users', currentUser.uid, userData);
-            console.log('User data initialized.');
+            await setDocument('mail', currentUser.uid, createEmailTemplateData(currentUser));
+          }
+
+          if (
+            userData.providerData.length !== currentUser.providerData.length ||
+            userData.providerData.some(({ providerId }: User, index: number) => providerId !== currentUser.providerData[index].providerId)
+          ) {
+            userData.providerData = currentUser.providerData;
+            await setDocument('users', currentUser.uid, {
+              ...userData,
+              providerData: currentUser.providerData,
+            });
+            console.log('User provider data updated.', userData);
+          }
+
+          if (userData.emailVerified !== currentUser.emailVerified) {
+            userData.emailVerified = currentUser.emailVerified;
+            await setDocument('users', currentUser.uid, {
+              ...userData,
+              emailVerified: currentUser.emailVerified,
+            });
+            console.log('Email verified data updated.', userData);
           }
 
           setUser(userData);
@@ -38,15 +66,8 @@ const useAuthStateManagement = () => {
           navigate('/student');
           console.log('User is signed in.', userData);
         } else {
-          if (currentUser) {
-            // Handle email verification scenarios
-            await signOut(auth);
-            console.log('User is signed out.');
-            setAlert('Please verify your email to proceed.', 'warning');
-          }
-
-          // Handle sign out scenarios
           setUser(null);
+          console.log('User is signed out.');
           navigate('/signin');
         }
       } catch (error) {
@@ -60,6 +81,20 @@ const useAuthStateManagement = () => {
 
     return () => unsubscribe();
   }, []);
+
+  const createEmailTemplateData = (currentUser: User): object => {
+    return {
+      to: [currentUser.email],
+      template: {
+        name: 'subscribe',
+        data: {
+          email: currentUser.email,
+          username: currentUser.displayName || 'USpace student',
+          signupDate: currentUser.metadata.creationTime,
+        },
+      },
+    };
+  };
 
   return null;
 };
