@@ -1,70 +1,93 @@
-import React, { createContext, useContext } from 'react';
-import { firestore } from '../firebase/config';
-import { deleteDoc, doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
-import { useStatus } from './StatusContext';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  DocumentData,
+  FirestoreError,
+  getDoc,
+  getDocs,
+  query,
+  QueryConstraint,
+  setDoc,
+  updateDoc,
+} from 'firebase/firestore';
+import React, { createContext } from 'react';
+import { useFirebase } from '../hooks/useFirebase';
 
 interface FirestoreContextType {
-  getDocument: (colName: string, docId: string) => Promise<any>;
-  setDocument: (colName: string, docId: string, data: any) => Promise<void>;
-  updateDocument: (colName: string, docId: string, data: any) => Promise<void>;
+  getDocument: (colName: string, docId: string) => Promise<DocumentData | undefined>;
+  setDocument: (colName: string, docId: string, data: Record<string, any>) => Promise<void>;
+  updateDocument: (colName: string, docId: string, data: Record<string, any>) => Promise<void>;
   deleteDocument: (colName: string, docId: string) => Promise<void>;
+  getCollection: (colName: string) => Promise<DocumentData[]>;
+  queryCollection: (colName: string, conditions: QueryConstraint[]) => Promise<DocumentData[]>;
 }
 
-const FirestoreContext = createContext<FirestoreContextType | null>(null);
+export const FirestoreContext = createContext<FirestoreContextType | null>(null);
 
 export const FirestoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { setLoading, setAlert } = useStatus(); // Use a status context to handle loading states and alerts
+const {firestore} = useFirebase();
 
-  const getDocument = async (colName: string, docId: string) => {
+  const getDocument = async (colName: string, docId: string): Promise<DocumentData | undefined> => {
     try {
-      setLoading(true);
       const docRef = doc(firestore, colName, docId);
       const docSnap = await getDoc(docRef);
-      return docSnap.exists() ? docSnap.data() : null;
+
+      if (!docSnap.exists()) {
+        console.warn(`Document with ID '${docId}' does not exist in collection '${colName}'.`);
+      }
+
+      return docSnap.data() as DocumentData;
     } catch (error) {
-      setAlert('Failed to fetch document.', 'error');
-      console.error('Error fetching document:', error);
-    } finally {
-      setLoading(false);
+      throw new Error(`Failed to fetch document: ${(error as FirestoreError).message}`);
     }
   };
 
-  const setDocument = async (colName: string, docId: string, data: any) => {
+  const setDocument = async (colName: string, docId: string, data: Record<string, any>): Promise<void> => {
     try {
-      setLoading(true);
       const docRef = doc(firestore, colName, docId);
       await setDoc(docRef, data);
     } catch (error) {
-      setAlert('Failed to set document.', 'error');
-      console.error('Error setting document:', error);
-    } finally {
-      setLoading(false);
+      throw new Error(`Failed to set document in collection '${colName}': ${(error as FirestoreError).message}`);
     }
   };
 
-  const updateDocument = async (colName: string, docId: string, data: any) => {
+  const updateDocument = async (colName: string, docId: string, data: Record<string, any>): Promise<void> => {
     try {
-      setLoading(true);
       const docRef = doc(firestore, colName, docId);
       await updateDoc(docRef, data);
     } catch (error) {
-      setAlert('Failed to update document.', 'error');
-      console.error('Error updating document:', error);
-    } finally {
-      setLoading(false);
+      throw new Error(`Failed to update document in collection '${colName}': ${(error as FirestoreError).message}`);
     }
   };
 
   const deleteDocument = async (colName: string, docId: string) => {
     try {
-      setLoading(true);
       const docRef = doc(firestore, colName, docId);
       await deleteDoc(docRef);
     } catch (error) {
-      setAlert('Failed to delete document.', 'error');
-      console.error('Error deleting document:', error);
-    } finally {
-      setLoading(false);
+      throw new Error(`Failed to delete document from collection '${colName}': ${(error as FirestoreError).message}`);
+    }
+  };
+
+  const getCollection = async (colName: string) => {
+    try {
+      const colRef = collection(firestore, colName);
+      const snapshot = await getDocs(colRef);
+      return snapshot.docs.map(doc => doc.data() as DocumentData);
+    } catch (error) {
+      throw new Error(`Failed to fetch collection '${colName}': ${(error as FirestoreError).message}`);
+    }
+  };
+
+  const queryCollection = async (colName: string, conditions: QueryConstraint[]) => {
+    try {
+      const colRef = collection(firestore, colName);
+      const q = query(colRef, ...conditions);
+      const snapshot = await getDocs(q);
+      return snapshot.docs.map(doc => doc.data() as DocumentData);
+    } catch (error) {
+      throw new Error(`Failed to query collection '${colName}': ${(error as FirestoreError).message}`);
     }
   };
 
@@ -75,6 +98,8 @@ export const FirestoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setDocument,
         updateDocument,
         deleteDocument,
+        getCollection,
+        queryCollection,
       }}
     >
       {children}
@@ -82,10 +107,3 @@ export const FirestoreProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   );
 };
 
-export const useFirestore = () => {
-  const context = useContext(FirestoreContext);
-  if (!context) {
-    throw new Error('useFirestore must be used within a FirestoreProvider');
-  }
-  return context;
-};
