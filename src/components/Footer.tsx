@@ -2,8 +2,8 @@ import React from 'react';
 
 const Footer = () => {
   return (
-    <div className="base-container bg-yellow-400">
-      <div className="text-container">Footer</div>
+    <div className="base-container ">
+      <div className="text-container bg-yellow-400">Footer</div>
     </div>
   );
 };

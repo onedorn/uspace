@@ -3,7 +3,8 @@
 @layer components {
   .base-container {
     @apply font-texgyreheros;
-    @apply text-white;
+    @apply bg-beige-500;
+    @apply text-black-500;
     @apply w-full;
     @apply min-w-80;
   }
