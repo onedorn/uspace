@@ -1,5 +1,12 @@
 import React, { createContext } from 'react';
-import { deleteObject, getDownloadURL, ref, StorageError, uploadBytes, UploadResult } from 'firebase/storage';
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  StorageError,
+  uploadBytes,
+  UploadResult,
+} from 'firebase/storage';
 import { useFirebase } from '../hooks/useFirebase';
 
 interface StorageContextType {
@@ -46,5 +53,3 @@ export const StorageProvider: React.FC<{ children: React.ReactNode }> = ({ child
     </StorageContext.Provider>
   );
 };
-
-

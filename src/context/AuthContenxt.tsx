@@ -31,7 +31,10 @@ interface AuthContextType {
   updateProfileInfo: (profile: { displayName?: string; photoURL?: string }) => Promise<void>;
   updateEmailAddress: (newEmail: string) => Promise<void>;
   changePassword: (newPassword: string) => Promise<void>;
-  linkAccount: (provider: Provider, resolver?: PopupRedirectResolver) => Promise<UserCredential | undefined>;
+  linkAccount: (
+    provider: Provider,
+    resolver?: PopupRedirectResolver
+  ) => Promise<UserCredential | undefined>;
   unlinkAccount: (providerId: string) => Promise<User | undefined>;
   deleteAccount: () => Promise<void>;
 }
@@ -39,7 +42,7 @@ interface AuthContextType {
 export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const {auth} = useFirebase();
+  const { auth } = useFirebase();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -50,7 +53,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [auth]);
 
   const register = async (email: string, password: string): Promise<UserCredential> => {
     setLoading(true);
@@ -109,7 +112,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateProfileInfo = async (profile: { displayName?: string; photoURL?: string }): Promise<void> => {
+  const updateProfileInfo = async (profile: {
+    displayName?: string;
+    photoURL?: string;
+  }): Promise<void> => {
     if (user) {
       setLoading(true);
       try {
@@ -148,7 +154,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const linkAccount = async (provider: Provider, resolver?: PopupRedirectResolver): Promise<UserCredential | undefined> => {
+  const linkAccount = async (
+    provider: Provider,
+    resolver?: PopupRedirectResolver
+  ): Promise<UserCredential | undefined> => {
     if (user) {
       setLoading(true);
       try {

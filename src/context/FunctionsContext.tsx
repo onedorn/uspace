@@ -1,4 +1,9 @@
-import { FunctionsError, httpsCallable, HttpsCallable, HttpsCallableResult } from 'firebase/functions';
+import {
+  FunctionsError,
+  httpsCallable,
+  HttpsCallable,
+  HttpsCallableResult,
+} from 'firebase/functions';
 import React, { createContext } from 'react';
 import { useFirebase } from '../hooks/useFirebase';
 
@@ -12,13 +17,16 @@ interface FunctionsContextType {
 export const FunctionsContext = createContext<FunctionsContextType | null>(null);
 
 export const FunctionsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const {functions} = useFirebase();
+  const { functions } = useFirebase();
 
   const callFunction = async <RequestData = unknown, ResponseData = unknown>(
     functionName: string,
     data?: RequestData
   ): Promise<ResponseData> => {
-    const callable: HttpsCallable<RequestData, ResponseData> = httpsCallable(functions, functionName);
+    const callable: HttpsCallable<RequestData, ResponseData> = httpsCallable(
+      functions,
+      functionName
+    );
     try {
       const result: HttpsCallableResult<ResponseData> = await callable(data);
       return result.data;
@@ -29,12 +37,5 @@ export const FunctionsProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     }
   };
 
-  return (
-    <FunctionsContext.Provider
-      value={{callFunction}}
-    >
-      {children}
-    </FunctionsContext.Provider>
-  );
+  return <FunctionsContext.Provider value={{ callFunction }}>{children}</FunctionsContext.Provider>;
 };
-
