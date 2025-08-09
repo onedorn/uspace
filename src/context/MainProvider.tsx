@@ -10,9 +10,7 @@ const MainProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     <FirestoreProvider>
       <StorageProvider>
         <FunctionsProvider>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <AuthProvider>{children}</AuthProvider>
         </FunctionsProvider>
       </StorageProvider>
     </FirestoreProvider>

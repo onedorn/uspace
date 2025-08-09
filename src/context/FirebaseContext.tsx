@@ -33,18 +33,19 @@ export const FirebaseProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const messaging = getMessaging(app);
 
   return (
-    <FirebaseContext.Provider value={{
-      app,
-      auth,
-      firestore,
-      database,
-      functions,
-      storage,
-      analytics,
-      messaging,
-    }}>
+    <FirebaseContext.Provider
+      value={{
+        app,
+        auth,
+        firestore,
+        database,
+        functions,
+        storage,
+        analytics,
+        messaging,
+      }}
+    >
       {children}
     </FirebaseContext.Provider>
   );
 };
-
