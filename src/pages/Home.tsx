@@ -5,7 +5,7 @@ import Teachers from '../components/Teachers';
 import Corporate from '../components/Corporate';
 import Testimonials from '../components/Testimonials';
 import FrequentlyAskedQuestions from '../components/FrequentlyAskedQuestions';
-import Prices from '../components/Prices';
+import Pricing from '../components/Pricing';
 import Contacts from '../components/Contacts';
 
 const Home = (): React.JSX.Element => {
@@ -16,7 +16,7 @@ const Home = (): React.JSX.Element => {
       <Teachers />
       <Corporate />
       <Testimonials />
-      <Prices />
+      <Pricing />
       <FrequentlyAskedQuestions />
       <Contacts />
     </>
