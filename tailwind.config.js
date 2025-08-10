@@ -10,59 +10,7 @@ module.exports = {
         gnuolane: ['Gnuolane Free Cyrillic', 'sans-serif'],
         texgyreheros: ['TeX Gyre Heros', 'sans-serif'],
       },
-      fontSize: {
-        // Headings
-        'heading-1': [
-          'clamp(36px, 7.5vw, 72px)',
-          {
-            lineHeight: 'clamp(40px, 8vw, 80px)',
-          },
-        ],
-        'heading-2': [
-          'clamp(32px, 6.5vw, 64px)',
-          {
-            lineHeight: 'clamp(36px, 7vw, 72px)',
-          },
-        ],
-        'heading-3': [
-          'clamp(28px, 5.5vw, 48px)',
-          {
-            lineHeight: 'clamp(32px, 6vw, 54px)',
-          },
-        ],
-        'heading-4': [
-          'clamp(20px, 4.5vw, 32px)',
-          {
-            lineHeight: 'clamp(24px, 5vw, 38px)',
-          },
-        ],
-
-        // Paragraphs (зроблені помітно адаптивними)
-        'p-large': [
-          'clamp(18px, 4vw, 26px)',
-          {
-            lineHeight: 'clamp(22px, 4.5vw, 32px)',
-          },
-        ],
-        'p-medium': [
-          'clamp(16px, 3.5vw, 22px)',
-          {
-            lineHeight: 'clamp(20px, 4vw, 28px)',
-          },
-        ],
-        'p-small': [
-          'clamp(14px, 3vw, 18px)',
-          {
-            lineHeight: 'clamp(18px, 3.5vw, 24px)',
-          },
-        ],
-        'p-xsmall': [
-          'clamp(12px, 2.5vw, 16px)',
-          {
-            lineHeight: 'clamp(16px, 3vw, 20px)',
-          },
-        ],
-      },
+      fontSize: {},
       colors: {
         beige: {
           100: '#FFFFF7', // Lighter
@@ -106,5 +54,187 @@ module.exports = {
     require('@tailwindcss/forms'),
     require('@tailwindcss/typography'),
     require('@tailwindcss/aspect-ratio'),
+    ({ addComponents, theme }) => {
+      addComponents({
+        '.text-h1': {
+          fontFamily: theme('fontFamily.gnuolane'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: 'normal',
+          fontSize: '60px',
+          '@screen md': {
+            fontSize: '80px',
+          },
+          '@screen lg': {
+            fontSize: '100px',
+          },
+        },
+        '.text-h2': {
+          fontFamily: theme('fontFamily.gnuolane'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: 'normal',
+          fontSize: '40px',
+          '@screen md': {
+            fontSize: '60px',
+          },
+          '@screen lg': {
+            fontSize: '90px',
+          },
+        },
+        '.text-h3': {
+          fontFamily: theme('fontFamily.gnuolane'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: 'normal',
+          fontSize: '24px',
+          '@screen md': {
+            fontSize: '28px',
+          },
+          '@screen lg': {
+            fontSize: '32px',
+          },
+        },
+        '.text-h4': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: 'normal',
+          fontSize: '24px',
+        },
+        '.text-p24': {
+          fontFamily: theme('fontFamily.gnuolane'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: 'normal',
+          fontSize: '24px',
+        },
+        '.text-p24-italic': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'italic',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '24px',
+          fontSize: '24px',
+        },
+        '.text-p24-italic-underlined': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'italic',
+          textDecorationLine: 'underline',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '24px',
+          fontSize: '24px',
+        },
+        '.text-p18-reg': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '24px',
+          fontSize: '18px',
+        },
+        '.text-p18-italic-underlined': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'italic',
+          textDecorationLine: 'underline',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '24px',
+          fontSize: '18px',
+        },
+        '.text-p16-regular': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '22px',
+          fontSize: '16px',
+        },
+        '.text-p16-italic': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'italic',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '22px',
+          fontSize: '16px',
+        },
+        '.text-p14-reg': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '20px',
+          fontSize: '14px',
+        },
+        '.text-p16-italic-underlined': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'italic',
+          textDecorationLine: 'underline',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '22px',
+          fontSize: '16px',
+        },
+        '.text-p18-gnuolane': {
+          fontFamily: theme('fontFamily.gnuolane'),
+          fontWeight: '400',
+          fontStyle: 'normal',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: 'normal',
+          fontSize: '18px',
+        },
+        '.text-p18-italic': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'italic',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '24px',
+          fontSize: '18px',
+        },
+        '.text-p14-italic': {
+          fontFamily: theme('fontFamily.texgyreheros'),
+          fontWeight: '400',
+          fontStyle: 'italic',
+          textDecorationLine: 'none',
+          textTransform: 'none',
+          letterSpacing: '0%',
+          lineHeight: '22px',
+          fontSize: '14px',
+        },
+      });
+    },
   ],
 };

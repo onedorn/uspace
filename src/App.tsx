@@ -1,18 +1,22 @@
 import React from 'react';
-import ScrollRestoration from './utils/ScrollRestoration';
-import { Outlet } from 'react-router-dom';
-import Header from './components/Header';
+import { Outlet, ScrollRestoration } from 'react-router-dom';
+import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 
 const App = (): React.JSX.Element => {
   return (
-    <div className="flex flex-col min-h-screen">
-      <ScrollRestoration />
-      <Header />
-      <main className="base-container flex-grow">
+    <div className="base flex flex-col min-h-screen">
+      <ScrollRestoration getKey={(location) => location.pathname} />
+
+      <header className="content">
+        <Navigation />
+      </header>
+      <main className="content flex-grow">
         <Outlet />
       </main>
-      <Footer />
+      <footer className="content">
+        <Footer />
+      </footer>
     </div>
   );
 };

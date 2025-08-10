@@ -1,6 +1,12 @@
 @tailwind base;
 
 @layer base {
+  *,
+  *::before,
+  *::after {
+    @apply box-border;
+  }
+
   html {
     @apply scroll-smooth;
   }
