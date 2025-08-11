@@ -33,7 +33,7 @@ const FrequentlyAskedQuestions: React.FC = () => {
   };
 
   return (
-    <section className="bg-orange-500 py-12">
+    <section id="faq" className="bg-orange-500 py-12">
       <div className="w-full px-4 sm:px-6 lg:px-8">
         <h1 className="text-h2 text-blue-500 text-center mb-10">FAQ</h1>
         <div className="space-y-4">

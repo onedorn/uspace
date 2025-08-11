@@ -96,7 +96,7 @@ const Pricing: React.FC = () => {
   ];
 
   return (
-    <div className="bg-beige-100 py-8">
+    <div id="pricing" className="bg-beige-100 py-8">
       <h1 className="text-h2 text-blue-500 text-center mb-8">ПРАЙС</h1>
       <div className="w-full mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

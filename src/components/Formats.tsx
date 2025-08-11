@@ -50,7 +50,7 @@ const Formats: React.FC = () => {
   };
 
   return (
-    <section className="bg-beige-100 py-8">
+    <section id="formats" className="bg-beige-100 py-8">
       <h1 className="text-h2 text-blue-500 text-center mb-8">ФОРМАТИ НАВЧАННЯ</h1>
       <div className="w-full mx-auto">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
