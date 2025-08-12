@@ -6,7 +6,7 @@ import Corporate from '../components/Corporate';
 import Testimonials from '../components/Testimonials/Testimonials';
 import FrequentlyAskedQuestions from '../components/FrequentlyAskedQuestions';
 import Pricing from '../components/Pricing';
-import Contacts from '../components/Contacts';
+import Contacts from '../components/Contacts/Contacts';
 
 const Home = (): React.JSX.Element => {
   return (

@@ -1,7 +1,9 @@
 import React, { useRef, useState } from 'react';
 import { Swiper, SwiperClass, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
+import { Navigation } from 'swiper/modules';
 import { testimonials } from '../../data/testimonials';
+import { FiChevronLeft } from '@react-icons/all-files/fi/FiChevronLeft';
+import { FiChevronRight } from '@react-icons/all-files/fi/FiChevronRight';
 
 import TestimonialHeader from './TestimonialHeader';
 import TestimonialGroup from './TestimonialGroup';
@@ -9,9 +11,6 @@ import TestimonialImage from './TestimonialImage';
 
 import 'swiper/css';
 import 'swiper/css/pagination';
-
-import { FiChevronLeft } from '@react-icons/all-files/fi/FiChevronLeft';
-import { FiChevronRight } from '@react-icons/all-files/fi/FiChevronRight';
 
 const Testimonials: React.FC = () => {
   const prevRef = useRef<HTMLButtonElement>(null);
@@ -39,8 +38,7 @@ const Testimonials: React.FC = () => {
       <div className="relative flex items-center">
         <button
           ref={prevRef}
-          className="rounded-full bg-orange-500 hover:bg-hover-orange-500 text-white p-2 disabled:cursor-not-allowed disabled:opacity-50
-    transition-colors"
+          className="rounded-full bg-orange-500 hover:bg-hover-orange-500 text-white p-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
           onClick={() => swiperInstance?.slidePrev()}
           disabled={isBeginning}
           aria-label="Previous testimonial"
@@ -50,18 +48,17 @@ const Testimonials: React.FC = () => {
         </button>
 
         <Swiper
-          modules={[Pagination, Navigation]}
+          modules={[Navigation]}
           onSwiper={onSwiperInit}
           onSlideChange={onSlideChange}
-          navigation={false} // Вимикаємо дефолтні кнопки
-          pagination={{ clickable: true }}
+          navigation={false}
           breakpoints={{
             320: { slidesPerView: 1, spaceBetween: 5 },
             640: { slidesPerView: 2, spaceBetween: 5 },
             768: { slidesPerView: 2, spaceBetween: 10 },
             1024: { slidesPerView: 3, spaceBetween: 10 },
           }}
-          className="h-[450px]"
+          className="h-[400px]"
         >
           {testimonials.map(({ id, src, alt }) => (
             <SwiperSlide key={id} className="h-full flex justify-center items-center">
@@ -76,8 +73,7 @@ const Testimonials: React.FC = () => {
 
         <button
           ref={nextRef}
-          className="rounded-full bg-orange-500 hover:bg-hover-orange-500 text-white p-2 disabled:cursor-not-allowed disabled:opacity-50
-    transition-colors"
+          className="rounded-full bg-orange-500 hover:bg-hover-orange-500 text-white p-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
           onClick={() => swiperInstance?.slideNext()}
           disabled={isEnd}
           aria-label="Next testimonial"
