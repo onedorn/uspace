@@ -2,7 +2,7 @@ import React from 'react';
 import Formats from '../components/Formats';
 import Hero from '../components/Hero';
 import Teachers from '../components/Teachers';
-import Corporate from '../components/Corporate';
+import Corporate from '../components/Corporate/Corporate';
 import Testimonials from '../components/Testimonials/Testimonials';
 import FrequentlyAskedQuestions from '../components/FrequentlyAskedQuestions';
 import Pricing from '../components/Pricing';
